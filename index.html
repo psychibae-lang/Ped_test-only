@@ -677,6 +677,22 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:#fafbff;}
 
 <!-- ══ 전화번호변경 탭 ══ -->
 <div id="tabPhone" class="container hidden">
+
+  <!-- 전화번호 미등록 환자 카드 -->
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+      <div class="card-title" style="margin-bottom:0;">📵 전화번호 미등록 환자</div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <span id="nullPhoneCount" style="font-size:11px;color:var(--text2);"></span>
+        <button class="btn btn-outline" onclick="loadNullPhoneList()" style="font-size:11px;padding:6px 10px;">🔄 조회</button>
+        <button class="btn btn-outline" onclick="downloadNullPhoneCsv()" style="font-size:11px;padding:6px 10px;">📥 CSV</button>
+      </div>
+    </div>
+    <div id="nullPhoneBody">
+      <div style="text-align:center;padding:20px;color:var(--text2);font-size:13px;">🔄 조회 버튼을 눌러주세요</div>
+    </div>
+  </div>
+
   <div class="card" style="max-width:480px;margin:0 auto;">
     <div class="card-title">전화번호 변경</div>
 
@@ -3748,7 +3764,94 @@ function srCopyCell(text, btn) {
 }
 
 
-// ══ 전화번호변경 탭 ══════════════════════════════════════
+// ══ 전화번호 미등록 환자 조회 ══════════════════════════
+var _nullPhoneList = [];
+
+async function loadNullPhoneList() {
+  var bodyEl = document.getElementById('nullPhoneBody');
+  var countEl = document.getElementById('nullPhoneCount');
+  bodyEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text2);font-size:13px;"><div class="spinner" style="margin:0 auto 8px;"></div>조회 중...</div>';
+  countEl.textContent = '';
+  try {
+    // phone이 null이거나 빈 문자열인 patients
+    var r1 = await fetch(SUPA_URL+'/rest/v1/patients?phone=is.null&select=chart_no,phone,sms_yn,updated_at&order=chart_no.asc&limit=500', {headers:sbH()});
+    var r2 = await fetch(SUPA_URL+'/rest/v1/patients?phone=eq.&select=chart_no,phone,sms_yn,updated_at&order=chart_no.asc&limit=500', {headers:sbH()});
+    var d1 = await r1.json();
+    var d2 = await r2.json();
+    _nullPhoneList = [].concat(Array.isArray(d1)?d1:[], Array.isArray(d2)?d2:[]);
+    // chart_no 중복 제거
+    var seen = {};
+    _nullPhoneList = _nullPhoneList.filter(function(p){ if(seen[p.chart_no]) return false; seen[p.chart_no]=true; return true; });
+    renderNullPhoneTable();
+  } catch(e) {
+    bodyEl.innerHTML = '<div style="text-align:center;padding:16px;color:var(--danger);font-size:13px;">❌ 조회 오류: '+e.message+'</div>';
+  }
+}
+
+function renderNullPhoneTable() {
+  var bodyEl = document.getElementById('nullPhoneBody');
+  var countEl = document.getElementById('nullPhoneCount');
+  var list = _nullPhoneList;
+  countEl.textContent = list.length+'명';
+  if (list.length === 0) {
+    bodyEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--success);font-size:13px;">✅ 미등록 환자 없음</div>';
+    return;
+  }
+  var rows = list.map(function(p, idx) {
+    return '<tr>'
+      +'<td><span class="code-badge">'+p.chart_no+'</span></td>'
+      +'<td><span style="font-size:11px;color:var(--text2);">'+(p.updated_at ? p.updated_at.slice(0,10) : '-')+'</span></td>'
+      +'<td>'
+        +'<div style="display:flex;gap:5px;align-items:center;">'
+          +'<input type="tel" id="np-input-'+idx+'" placeholder="01012345678" inputmode="numeric"'
+            +' style="background:#f7f8fc;border:1px solid var(--border);border-radius:6px;padding:5px 8px;font-size:12px;width:130px;outline:none;"'
+            +' onkeydown="if(event.key===\'Enter\')saveNullPhone('+idx+',\''+p.chart_no+'\')">'
+          +'<button onclick="saveNullPhone('+idx+',\''+p.chart_no+'\')" class="btn btn-success" style="font-size:11px;padding:5px 10px;">저장</button>'
+          +'<button onclick="document.getElementById(\'pc2-chart\').value=\''+p.chart_no+'\';pc2Search();switchTab(\'phone\');" class="btn btn-outline" style="font-size:11px;padding:5px 8px;" title="변경 폼으로">✏️</button>'
+        +'</div>'
+        +'<div id="np-msg-'+idx+'" style="font-size:11px;min-height:14px;margin-top:3px;font-weight:600;"></div>'
+      +'</td>'
+      +'</tr>';
+  }).join('');
+  bodyEl.innerHTML = '<div style="overflow-x:auto;">'
+    +'<table><thead><tr><th>챠트번호</th><th>최근수정</th><th>전화번호 입력</th></tr></thead>'
+    +'<tbody>'+rows+'</tbody></table></div>';
+}
+
+async function saveNullPhone(idx, chartNo) {
+  var inputEl = document.getElementById('np-input-'+idx);
+  var msgEl   = document.getElementById('np-msg-'+idx);
+  var phone   = (inputEl.value||'').trim();
+  if (!phone) { msgEl.textContent='⚠️ 번호 입력 필요'; msgEl.style.color='var(--danger)'; return; }
+  msgEl.textContent='저장 중...'; msgEl.style.color='var(--text2)';
+  try {
+    var ok = await sbUpsert('patients', {chart_no:chartNo, phone:phone, updated_at:new Date().toISOString()});
+    if (ok) {
+      msgEl.textContent='✅ 저장됨'; msgEl.style.color='var(--success)';
+      // 목록에서 제거
+      _nullPhoneList.splice(idx, 1);
+      showToast('✅ '+chartNo+' → '+phone+' 저장 완료');
+      setTimeout(renderNullPhoneTable, 700);
+    } else {
+      msgEl.textContent='❌ 저장 실패'; msgEl.style.color='var(--danger)';
+    }
+  } catch(e) {
+    msgEl.textContent='❌ 오류'; msgEl.style.color='var(--danger)';
+  }
+}
+
+function downloadNullPhoneCsv() {
+  if (!_nullPhoneList.length) { showToast('먼저 조회해주세요.'); return; }
+  var csv = '챠트번호,최근수정\n';
+  _nullPhoneList.forEach(function(p) {
+    csv += p.chart_no+','+(p.updated_at||'').slice(0,10)+'\n';
+  });
+  var blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8;'});
+  var a = document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='전화번호미등록_'+today6()+'.csv'; a.click();
+}
+
+
 function pc2FmtPhone(ph) {
   if (!ph) return '(미등록)';
   var d = ph.replace(/[^0-9]/g,'');
