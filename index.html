@@ -3977,6 +3977,8 @@ function openEditModal() {
   document.getElementById('edit-chart-input').value = row.chart||'';
   document.getElementById('edit-modal').style.display = 'block';
 }
+function closeModal() { document.getElementById('detail-modal').style.display = 'none'; }
+
 function closeEditModal() { document.getElementById('edit-modal').style.display = 'none'; }
 
 async function saveEdit() {
