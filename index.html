@@ -4095,33 +4095,20 @@ async function confirmDelete() {
     </div>
   </div>
 
-  <!-- 편집 패널 (하단) -->
-  <div class="card">
-    <div class="card-title">✏️ 링크 추가 / 편집</div>
-    <div id="lk-entries" style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;"></div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;">
-      <button class="btn btn-outline" onclick="lkAddRow()" style="font-size:12px;">+ 행 추가</button>
-      <button class="btn btn-success" onclick="lkSave()" style="margin-left:auto;font-size:13px;">💾 저장</button>
-    </div>
-  </div>
 
-  <!-- Supabase 테이블 생성 SQL -->
-  <div class="card" style="margin-top:12px;">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
-      <div class="card-title" style="margin-bottom:0;font-size:12px;color:var(--text2);">🛠 Supabase 테이블 생성 SQL <span style="font-weight:400;">(처음 한 번만 실행)</span></div>
-      <button onclick="lkCopySql()" class="btn btn-outline" style="font-size:11px;padding:4px 10px;">📋 복사</button>
+  <!-- 편집 패널 (토글) -->
+  <div class="card" style="margin-top:8px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;" onclick="lkToggleEditor()">
+      <div class="card-title" style="margin-bottom:0;">✏️ 링크 추가 / 편집</div>
+      <span id="lk-toggle-icon" style="font-size:18px;color:var(--text2);transition:transform .2s;display:inline-block;">▾</span>
     </div>
-    <pre id="lk-sql" style="background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:12px;font-size:11px;font-family:monospace;color:#334155;overflow-x:auto;white-space:pre;line-height:1.7;">create table if not exists clinic_links (
-  id          bigserial primary key,
-  name        text not null,
-  url         text not null,
-  sort_order  integer default 0,
-  created_at  timestamptz default now()
-);
-
--- RLS: 모든 사용자 읽기/쓰기 허용 (필요시 조정)
-alter table clinic_links enable row level security;
-create policy "allow all" on clinic_links for all using (true) with check (true);</pre>
+    <div id="lk-editor-body" style="margin-top:14px;">
+      <div id="lk-entries" style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;"></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn btn-outline" onclick="lkAddRow()" style="font-size:12px;">+ 행 추가</button>
+        <button class="btn btn-success" onclick="lkSave()" style="margin-left:auto;font-size:13px;">💾 저장</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -4257,10 +4244,14 @@ async function lkClearAll() {
 }
 
 function lkEsc(s){ return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
-function lkCopySql() {
-  var sql = document.getElementById('lk-sql').textContent;
-  navigator.clipboard.writeText(sql).then(function(){ showToast('✅ SQL 복사 완료! Supabase SQL Editor에 붙여넣기 후 실행하세요.'); })
-    .catch(function(){ showToast('⚠️ 복사 실패 — 직접 선택해서 복사해주세요'); });
+
+var _lkEditorOpen = true;
+function lkToggleEditor() {
+  _lkEditorOpen = !_lkEditorOpen;
+  var body = document.getElementById('lk-editor-body');
+  var icon = document.getElementById('lk-toggle-icon');
+  body.style.display = _lkEditorOpen ? '' : 'none';
+  icon.style.transform = _lkEditorOpen ? '' : 'rotate(-90deg)';
 }
 // ═══════════════════════════════════════════════════════
 </script>
