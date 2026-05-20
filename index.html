@@ -4254,8 +4254,8 @@ async function lkSave() {
   if (!newList.length) { showToast('⚠️ 이름과 URL을 입력해주세요'); return; }
 
   try {
-    // 기존 전체 삭제 후 재삽입 (간단한 upsert 전략)
-    var r = await fetch(SUPA_URL+'/rest/v1/'+LK_TABLE, {
+    // 기존 전체 삭제 후 재삽입 (Supabase RLS: id>0 조건 필요)
+    var r = await fetch(SUPA_URL+'/rest/v1/'+LK_TABLE+'?id=gt.0', {
       method:'DELETE',
       headers: Object.assign({'Prefer':'return=minimal'}, sbH())
     });
@@ -4268,18 +4268,27 @@ async function lkSave() {
     if (r2.ok || r2.status===201) {
       _lkList = newList;
       lkRender();
+      // 편집기 행을 저장된 내용으로 동기화 (중복 없이)
+      document.getElementById('lk-entries').innerHTML = '';
+      _lkList.forEach(function(l){ lkAddRow(l.name, l.url); });
+      lkAddRow();
       showToast('✅ 링크 저장 완료 ('+newList.length+'개)');
     } else {
-      // fallback: localStorage
       localStorage.setItem('link_manager_v1', JSON.stringify(newList.map(function(l){ return {name:l.name,url:l.url}; })));
       _lkList = newList;
       lkRender();
+      document.getElementById('lk-entries').innerHTML = '';
+      _lkList.forEach(function(l){ lkAddRow(l.name, l.url); });
+      lkAddRow();
       showToast('✅ 로컬에 저장 완료 ('+newList.length+'개)');
     }
   } catch(e) {
     localStorage.setItem('link_manager_v1', JSON.stringify(newList.map(function(l){ return {name:l.name,url:l.url}; })));
     _lkList = newList;
     lkRender();
+    document.getElementById('lk-entries').innerHTML = '';
+    _lkList.forEach(function(l){ lkAddRow(l.name, l.url); });
+    lkAddRow();
     showToast('✅ 로컬에 저장 완료 ('+newList.length+'개)');
   }
 }
@@ -4287,12 +4296,15 @@ async function lkSave() {
 async function lkClearAll() {
   if (!confirm('저장된 링크를 모두 삭제할까요?')) return;
   try {
-    await fetch(SUPA_URL+'/rest/v1/'+LK_TABLE, { method:'DELETE', headers: Object.assign({'Prefer':'return=minimal'}, sbH()) });
+    // Supabase RLS: 조건 없는 DELETE는 막힐 수 있으므로 id > 0 조건 추가
+    await fetch(SUPA_URL+'/rest/v1/'+LK_TABLE+'?id=gt.0', { method:'DELETE', headers: Object.assign({'Prefer':'return=minimal'}, sbH()) });
   } catch(e) {}
   localStorage.removeItem('link_manager_v1');
   _lkList = [];
   lkRender();
-  lkPopulateEditor();
+  // 편집기 행만 비우기 (_lkLoaded 유지, 중복 방지)
+  document.getElementById('lk-entries').innerHTML = '';
+  lkAddRow(); lkAddRow();
   showToast('🗑️ 모두 삭제했습니다');
 }
 
