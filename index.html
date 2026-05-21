@@ -13,27 +13,13 @@ header{background:#fff;border-bottom:1px solid var(--border);padding:10px 20px;d
 .logo{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--accent);background:#eef3fe;padding:3px 10px;border-radius:6px;border:1px solid #c7d9fb;}
 #keyBanner{background:#fff;border-bottom:1px solid var(--border);padding:6px 20px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
 #keyBanner input{flex:1;min-width:160px;background:#f7f8fc;border:1px solid var(--border);border-radius:6px;padding:5px 10px;color:var(--text);font-family:monospace;font-size:12px;outline:none;}
-.nav-bar{background:#fff;border-bottom:2px solid var(--border);padding:0 20px;display:flex;overflow-x:auto;}
+/* ── 그룹 네비게이션 ── */
+.nav-wrap{background:#fff;border-bottom:2px solid var(--border);padding:0 16px;display:flex;flex-direction:row;align-items:stretch;gap:0;overflow-x:auto;}
+.nav-group{display:flex;flex-direction:row;align-items:stretch;}
+.nav-group + .nav-group{border-left:2px solid var(--border);margin-left:2px;padding-left:2px;}
 .nav-tab{background:none;border:none;border-bottom:3px solid transparent;color:var(--text2);font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:600;padding:11px 14px;cursor:pointer;white-space:nowrap;transition:all 0.15s;}
 .nav-tab:hover{color:var(--text);}.nav-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
-
-/* ── 모바일 햄버거 ── */
 .mob-nav{display:none;}
-@media(max-width:640px){
-  .nav-bar{display:none;}
-  .mob-nav{display:flex;align-items:center;gap:0;background:#fff;border-bottom:2px solid var(--border);position:sticky;top:52px;z-index:99;}
-  .mob-quick{display:flex;flex:1;overflow-x:auto;}
-  .mob-quick .nav-tab{font-size:12px;padding:10px 11px;}
-  .mob-burger{background:none;border:none;border-left:1px solid var(--border);padding:10px 14px;font-size:18px;cursor:pointer;color:var(--text2);flex-shrink:0;}
-  .mob-drawer{display:none;position:fixed;inset:0;z-index:9999;}
-  .mob-drawer.open{display:flex;}
-  .mob-overlay{position:absolute;inset:0;background:rgba(0,0,0,0.45);}
-  .mob-menu{position:absolute;top:0;right:0;width:220px;height:100%;background:#fff;box-shadow:-4px 0 20px rgba(0,0,0,0.15);display:flex;flex-direction:column;overflow-y:auto;}
-  .mob-menu-header{padding:16px 18px;font-size:13px;font-weight:700;color:var(--text2);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
-  .mob-menu-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--text2);}
-  .mob-menu-item{background:none;border:none;border-bottom:1px solid #f0f2f8;text-align:left;padding:14px 20px;font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:600;color:var(--text2);cursor:pointer;width:100%;transition:background .15s;}
-  .mob-menu-item:hover,.mob-menu-item.active{background:#eef3fe;color:var(--accent);}
-}
 .container{max-width:680px;margin:0 auto;padding:16px 12px;display:flex;flex-direction:column;gap:14px;}
 .card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,0.04);}
 .card-title{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:12px;display:flex;align-items:center;gap:7px;}
@@ -213,50 +199,26 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:#fafbff;}
   <button onclick="saveKey()" class="btn btn-primary" style="font-size:11px;padding:5px 10px;">저장</button>
   <span id="keyStatus" style="font-size:11px;color:var(--text2);"></span>
 </div>
-<div class="nav-bar">
-  <button class="nav-tab active" id="navLinks" onclick="switchTab('links');loadLinksTab()">🔗 링크</button>
-  <button class="nav-tab" id="navPatient" onclick="switchTab('patient')">👤 진료</button>
-  <button class="nav-tab" id="navAppt" onclick="switchTab('appt');loadAppts()">📅 예약</button>
-  <button class="nav-tab" id="navDrug" onclick="switchTab('drug')">💊 약물입력</button>
-  <button class="nav-tab" id="navSearch" onclick="switchTab('search');loadSearchTab()">🔍 접수조회</button>
-  <button class="nav-tab" id="navClin" onclick="switchTab('clin');initClinTab()">🧠 임상가척도</button>
-  <button class="nav-tab" id="navProxy" onclick="switchTab('proxy')">📋 대리처방</button>
-  <button class="nav-tab" id="navSelcare" onclick="switchTab('selcare')">⭐ 선택의료</button>
-  <button class="nav-tab" id="navSms" onclick="switchTab('sms')">📱 문자발송</button>
-  <button class="nav-tab" id="navPhone" onclick="switchTab('phone')">📞 전화번호변경</button>
-  <button class="nav-tab" id="navStats" onclick="switchTab('stats');loadVisitStats()">📊 내원현황</button>
-</div>
-
-<!-- 모바일 햄버거 네비 -->
-<div class="mob-nav">
-  <!-- 자주 쓰는 탭 3개 고정 -->
-  <div class="mob-quick">
-    <button class="nav-tab active" id="mobNavLinks"    onclick="mobSwitch('links',   function(){loadLinksTab();})">🔗 링크</button>
-    <button class="nav-tab"        id="mobNavPatient"  onclick="mobSwitch('patient', null)">👤 진료</button>
-    <button class="nav-tab"        id="mobNavAppt"     onclick="mobSwitch('appt',    function(){loadAppts();})">📅 예약</button>
+<div class="nav-wrap">
+  <!-- 그룹 1: 진료 -->
+  <div class="nav-group">
+    <button class="nav-tab active" id="navLinks" onclick="switchTab('links');loadLinksTab()">🔗 링크</button>
+    <button class="nav-tab" id="navPatient" onclick="switchTab('patient')">👤 진료</button>
+    <button class="nav-tab" id="navAppt" onclick="switchTab('appt');loadAppts()">📅 예약</button>
+    <button class="nav-tab" id="navDrug" onclick="switchTab('drug')">💊 약물입력</button>
+    <button class="nav-tab" id="navSearch" onclick="switchTab('search');loadSearchTab()">🔍 접수조회</button>
+    <button class="nav-tab" id="navClin" onclick="switchTab('clin');initClinTab()">🧠 임상가척도</button>
   </div>
-  <button class="mob-burger" onclick="mobOpenDrawer()" title="전체 메뉴">☰</button>
-</div>
-
-<!-- 드로어 (전체 메뉴) -->
-<div class="mob-drawer" id="mobDrawer">
-  <div class="mob-overlay" onclick="mobCloseDrawer()"></div>
-  <div class="mob-menu">
-    <div class="mob-menu-header">
-      <span>전체 메뉴</span>
-      <button class="mob-menu-close" onclick="mobCloseDrawer()">✕</button>
-    </div>
-    <button class="mob-menu-item" id="mobDLinks"    onclick="mobSwitch('links',    function(){loadLinksTab();});mobCloseDrawer()">🔗 링크</button>
-    <button class="mob-menu-item" id="mobDPatient"  onclick="mobSwitch('patient',  null);mobCloseDrawer()">👤 진료</button>
-    <button class="mob-menu-item" id="mobDAppt"     onclick="mobSwitch('appt',     function(){loadAppts();});mobCloseDrawer()">📅 예약</button>
-    <button class="mob-menu-item" id="mobDDrug"     onclick="mobSwitch('drug',     null);mobCloseDrawer()">💊 약물입력</button>
-    <button class="mob-menu-item" id="mobDSearch"   onclick="mobSwitch('search',   function(){loadSearchTab();});mobCloseDrawer()">🔍 접수조회</button>
-    <button class="mob-menu-item" id="mobDClin"     onclick="mobSwitch('clin',     function(){initClinTab();});mobCloseDrawer()">🧠 임상가척도</button>
-    <button class="mob-menu-item" id="mobDProxy"    onclick="mobSwitch('proxy',    null);mobCloseDrawer()">📋 대리처방</button>
-    <button class="mob-menu-item" id="mobDSelcare"  onclick="mobSwitch('selcare',  null);mobCloseDrawer()">⭐ 선택의료</button>
-    <button class="mob-menu-item" id="mobDSms"      onclick="mobSwitch('sms',      null);mobCloseDrawer()">📱 문자발송</button>
-    <button class="mob-menu-item" id="mobDPhone"    onclick="mobSwitch('phone',    null);mobCloseDrawer()">📞 전화번호변경</button>
-    <button class="mob-menu-item" id="mobDStats"    onclick="mobSwitch('stats',    function(){loadVisitStats();});mobCloseDrawer()">📊 내원현황</button>
+  <!-- 그룹 2: 조회 -->
+  <div class="nav-group">
+    <button class="nav-tab" id="navProxy" onclick="switchTab('proxy')">📋 대리처방</button>
+    <button class="nav-tab" id="navSelcare" onclick="switchTab('selcare')">⭐ 선택의료</button>
+    <button class="nav-tab" id="navPhone" onclick="switchTab('phone')">📞 전화번호변경</button>
+  </div>
+  <!-- 그룹 3: 기타 -->
+  <div class="nav-group">
+    <button class="nav-tab" id="navSms" onclick="switchTab('sms')">📱 문자발송</button>
+    <button class="nav-tab" id="navStats" onclick="switchTab('stats');loadVisitStats()">📊 내원현황</button>
   </div>
 </div>
 
@@ -4296,46 +4258,8 @@ async function lkClearAll() {
   showToast('🗑️ 모두 삭제했습니다');
 }
 
-// ── 모바일 햄버거 메뉴 ────────────────────────────────
-var _mobQuickIds = ['links','patient','appt'];
-var _mobAllIds   = ['links','patient','appt','drug','search','clin','proxy','selcare','sms','phone','stats'];
 
-function mobSwitch(tab, extraFn) {
-  switchTab(tab);
-  if (extraFn) extraFn();
-  // 퀵탭 active 동기화
-  _mobQuickIds.forEach(function(t) {
-    var el = document.getElementById('mobNav' + t.charAt(0).toUpperCase() + t.slice(1));
-    if (el) el.classList.toggle('active', t === tab);
-  });
-  // 드로어 아이템 active 동기화
-  _mobAllIds.forEach(function(t) {
-    var key = t.charAt(0).toUpperCase() + t.slice(1);
-    var el = document.getElementById('mobD' + key);
-    if (el) el.classList.toggle('active', t === tab);
-  });
-}
-
-function mobOpenDrawer()  { document.getElementById('mobDrawer').classList.add('open');    document.body.style.overflow='hidden'; }
-function mobCloseDrawer() { document.getElementById('mobDrawer').classList.remove('open'); document.body.style.overflow=''; }
-
-// switchTab 후 모바일 active도 함께 갱신
-var _origSwitchTab = switchTab;
-switchTab = function(tab) {
-  _origSwitchTab(tab);
-  _mobQuickIds.forEach(function(t) {
-    var el = document.getElementById('mobNav' + t.charAt(0).toUpperCase() + t.slice(1));
-    if (el) el.classList.toggle('active', t === tab);
-  });
-  _mobAllIds.forEach(function(t) {
-    var key = t.charAt(0).toUpperCase() + t.slice(1);
-    var el = document.getElementById('mobD' + key);
-    if (el) el.classList.toggle('active', t === tab);
-  });
-};
-// ─────────────────────────────────────────────────────
-
-function lkEsc(s){ return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+// ═══════════════════════════════════════════════════════function lkEsc(s){ return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
 
 var _lkEditorOpen = true;
 function lkToggleEditor() {
