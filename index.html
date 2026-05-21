@@ -14,10 +14,14 @@ header{background:#fff;border-bottom:1px solid var(--border);padding:10px 20px;d
 #keyBanner{background:#fff;border-bottom:1px solid var(--border);padding:6px 20px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
 #keyBanner input{flex:1;min-width:160px;background:#f7f8fc;border:1px solid var(--border);border-radius:6px;padding:5px 10px;color:var(--text);font-family:monospace;font-size:12px;outline:none;}
 /* ── 그룹 네비게이션 ── */
-.nav-wrap{background:#fff;border-bottom:2px solid var(--border);padding:0 16px;display:flex;flex-direction:row;align-items:stretch;gap:0;overflow-x:auto;}
-.nav-group{display:flex;flex-direction:row;align-items:stretch;}
-.nav-group + .nav-group{border-left:2px solid var(--border);margin-left:2px;padding-left:2px;}
-.nav-tab{background:none;border:none;border-bottom:3px solid transparent;color:var(--text2);font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:600;padding:11px 14px;cursor:pointer;white-space:nowrap;transition:all 0.15s;}
+.nav-wrap{background:#fff;border-bottom:2px solid var(--border);padding:0;}
+.nav-groups-row{display:flex;flex-direction:row;padding:0 16px;gap:4px;border-bottom:1px solid var(--border);}
+.nav-group-btn{background:none;border:none;border-bottom:3px solid transparent;font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:700;color:var(--text2);padding:10px 18px;cursor:pointer;white-space:nowrap;transition:all 0.15s;}
+.nav-group-btn:hover{color:var(--text);}
+.nav-group-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
+.nav-tabs-row{display:none;flex-direction:row;padding:0 12px;overflow-x:auto;background:#f7f8fc;}
+.nav-tabs-row.active{display:flex;}
+.nav-tab{background:none;border:none;border-bottom:3px solid transparent;color:var(--text2);font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:600;padding:9px 13px;cursor:pointer;white-space:nowrap;transition:all 0.15s;}
 .nav-tab:hover{color:var(--text);}.nav-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
 .mob-nav{display:none;}
 .container{max-width:680px;margin:0 auto;padding:16px 12px;display:flex;flex-direction:column;gap:14px;}
@@ -200,25 +204,27 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:#fafbff;}
   <span id="keyStatus" style="font-size:11px;color:var(--text2);"></span>
 </div>
 <div class="nav-wrap">
-  <!-- 그룹 1: 진료 -->
-  <div class="nav-group">
-    <button class="nav-tab active" id="navLinks" onclick="switchTab('links');loadLinksTab()">🔗 링크</button>
-    <button class="nav-tab" id="navPatient" onclick="switchTab('patient')">👤 진료</button>
+  <div class="nav-groups-row">
+    <button class="nav-group-btn active" id="grpBtnJinryo" onclick="switchNavGroup('jinryo')">진료</button>
+    <button class="nav-group-btn" id="grpBtnJohoe" onclick="switchNavGroup('johoe')">조회</button>
+    <button class="nav-group-btn" id="grpBtnEtc" onclick="switchNavGroup('etc')">기타</button>
+  </div>
+  <div class="nav-tabs-row active" id="grpJinryo">
+    <button class="nav-tab active" id="navPatient" onclick="switchTab('patient')">👤 진료</button>
     <button class="nav-tab" id="navAppt" onclick="switchTab('appt');loadAppts()">📅 예약</button>
     <button class="nav-tab" id="navDrug" onclick="switchTab('drug')">💊 약물입력</button>
     <button class="nav-tab" id="navSearch" onclick="switchTab('search');loadSearchTab()">🔍 접수조회</button>
     <button class="nav-tab" id="navClin" onclick="switchTab('clin');initClinTab()">🧠 임상가척도</button>
   </div>
-  <!-- 그룹 2: 조회 -->
-  <div class="nav-group">
+  <div class="nav-tabs-row" id="grpJohoe">
     <button class="nav-tab" id="navProxy" onclick="switchTab('proxy')">📋 대리처방</button>
     <button class="nav-tab" id="navSelcare" onclick="switchTab('selcare')">⭐ 선택의료</button>
     <button class="nav-tab" id="navPhone" onclick="switchTab('phone')">📞 전화번호변경</button>
   </div>
-  <!-- 그룹 3: 기타 -->
-  <div class="nav-group">
+  <div class="nav-tabs-row" id="grpEtc">
     <button class="nav-tab" id="navSms" onclick="switchTab('sms')">📱 문자발송</button>
     <button class="nav-tab" id="navStats" onclick="switchTab('stats');loadVisitStats()">📊 내원현황</button>
+    <button class="nav-tab" id="navLinks" onclick="switchTab('links');loadLinksTab()">🔗 링크</button>
   </div>
 </div>
 
@@ -4270,6 +4276,19 @@ function lkToggleEditor() {
   body.style.display = _lkEditorOpen ? '' : 'none';
   icon.style.transform = _lkEditorOpen ? '' : 'rotate(-90deg)';
 }
+
+// ── 그룹 네비 전환 ──────────────────────────────────
+var _navGroups = ['jinryo','johoe','etc'];
+function switchNavGroup(group) {
+  _navGroups.forEach(function(g) {
+    var key = g.charAt(0).toUpperCase() + g.slice(1);
+    var btn = document.getElementById('grpBtn' + key);
+    var row = document.getElementById('grp' + key);
+    if (btn) btn.classList.toggle('active', g === group);
+    if (row) row.classList.toggle('active', g === group);
+  });
+}
+// ─────────────────────────────────────────────────────
 // ═══════════════════════════════════════════════════════
 </script>
 </body>
