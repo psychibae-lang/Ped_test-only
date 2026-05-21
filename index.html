@@ -857,7 +857,7 @@ document.addEventListener('DOMContentLoaded', function(){
   });
 });
 const PROXY = 'https://rurbfcocihvapbtdzbyt.supabase.co/functions/v1/claude-proxy';
-const SUPA_URL = 'https://rurbfcocihvapbtdzbyt.supabase.co';
+const SUPA_URL = 'https://qouywglrlahhiilpjech.supabase.co';
 let ANON_KEY = localStorage.getItem('sb_anon_key') || '';
 
 const DRUG_LIST = {"aaalp012": "자나팜정 0.125mg", "aaalp025": "자나팜정 0.25mg", "aaalp05": "자나팜정 0.5mg", "aaalp1": "자나팜정 1mg", "aaato18": "아토목신캡슐 18mg", "aaato25": "아토목신캡슐 25mg", "aaatv05": "스리반정 0.5mg", "aaatv1": "스리반정 1mg", "aabroma": "브로마제팜 3mg", "aadepa25": "데파스 0.25mg", "aadz2": "디아제팜 명인 2mg", "aadz5": "디아제팜 명인 5mg", "aalp25환인": "알프람 0.25mg", "aaluna": "루나팜 1mg", "aamedi10": "메디키넷리타드캡슐 10mg", "aamedi20": "메디키넷리타드캡슐 20mg", "aapen10": "페니드 10mg", "aaribon": "리보트릴", "aasti10": "졸피신정 10mg", "aasti12": "스틸녹스CR 12.5mg", "aasti5": "졸피신 5mg", "aastiI62": "스틸녹스CR 6.25mg", "aazol125": "졸민 0.125mg", "aazol25": "졸민 0.25mg", "abili_1": "레피졸 1mg", "abili10": "레피졸 10mg", "abili15": "레피졸 15mg", "ABILI152": "아빌리파이 15mg", "abili2": "아빌리파이 2mg", "abili30_": "레피졸 30mg", "abili5": "레피졸 5mg", "ablil_2": "레피졸 2mg", "acam": "아캄프로세이트 명인 333mg", "alma-2": "알마겔", "ami10": "아미트리프틸린염산염 명인 10mg", "amit25": "에트라빌 25mg", "ap650": "타이리콜이알서방정", "ATV05": "아티반 0.5mg", "ATV1": "아티반 1mg", "benz1": "벤즈트로핀메실산염 1mg", "benz2": "벤즈트로핀메실레이트 2mg", "bona": "보나링에이", "brin10": "브린텔릭스 10mg", "brin5": "브린텔릭스 5mg", "busp5": "부스피론 5mg", "cbzn200": "테그레톨씨알 200mg", "cibe": "씨베리움캡슐", "CON18-2": "콘서타OROS서방정18mg", "CON27-2": "콘서타OROS서방정27mg", "CON36-2": "콘서타OROS서방정36mg", "con54-2": "콘서타OROS서방정54mg", "cpz200": "클로르프로마진 200mg", "cpz50": "클로르프로마진 50mg", "depa500": "데파킨크로노 500mg", "desv100": "에스벤서방정 100mg", "desv25": "에스벤서방정 25mg", "desv50": "에스벤서방정 50mg", "doxe3": "명세핀 3mg", "dull30": "드록틴캡슐 30mg", "dull60": "드록틴캡슐 60mg", "DZ2": "디아제팜 삼진 2mg", "DZ5": "디아제팜 삼진 5mg", "flu20m": "푸록틴캡슐 20mg", "fluo10": "푸록틴캅셀 10mg", "gasmo": "가스모틴 5mg", "gria-j": "글리아티린연질캡슐 종근당", "hal5": "할로페리돌 5mg", "hip10": "하이페질 10mg", "hip5": "하이페질 5mg", "IMIGRAN5": "이미그란 50mg", "imipra25": "이미프라민염산염 25mg", "inde10": "인데놀 10mg", "inde40": "인데놀 40mg", "kcap": "케이캡 50mg", "kcap210": "펙수클루 10mg", "kcap240": "펙수클루 40mg", "kcap25": "케이캡 25mg", "lamo100": "라모스탈 100mg", "lamo50": "라모스탈 50mg", "LEX5-22": "렉사프로 5mg", "lexa10": "뉴프람 10mg", "lexa15": "뉴프람 15mg", "lexa20": "뉴프람 20mg", "lexa5": "뉴프람 5mg", "lith300b": "리단 300mg", "lodo100": "로도핀 100mg", "lodo50": "로도핀 50mg", "MELA-2": "서카딘서방정 2mg", "meman": "뉴로케이", "mgo3": "마그밀", "migad": "미가드 2.5mg", "mirt15": "멀타핀 15mg", "mirt30": "멀타핀 30mg", "mirt75": "멀타핀 7.5mg", "nalt50": "트락손 50mg", "nicer": "니세르골린 30mg", "paki25": "파키놀 0.25mg", "par12": "파록스씨알 12.5mg", "par25": "파록스씨알 25mg", "PARO25-2": "에이자트씨알 25mg", "peni": "페니라민", "peni100": "페니토인 100mg", "PHENI100": "히단토인 100mg", "PIRI": "피리독신", "ppz4": "페르페나진 4mg", "PROI": "프로이머", "ris1M": "리스펜 1mg", "rism0.5": "리스펜 0.5mg", "rism2": "리스펜2mg", "RONA4": "로나센 4mg", "sero100": "큐로켈 100mg", "sero100-2": "쎄로켈 100mg", "sero12": "쿠에타핀 12.5mg", "sero200": "큐로켈 200mg", "sero25": "큐로켈 25mg", "sero300": "쿠에티아핀정 300mg", "sero50": "큐로켈 50mg", "SOL100": "솔리안 100mg", "sol400": "솔리안 400mg", "stablon": "스타브론", "STI10": "스틸녹스 10mg", "STRA182": "스트라테라캡슐 18mg", "STRA252": "스트라테라캡슐 25mg", "TOPA100-2": "토파메이트 100mg", "topa25": "토파메이트 25mg", "tra325": "트라몰 325mg", "Trarin": "트라린 50mg", "trazo25": "트라조돈캅셀 25mg", "triti25": "트리티코 25mg", "triti50": "트리티코 50mg", "uturn16": "유턴16mg", "val300": "바렙톨서방정 300mg", "VAL300-O": "오르필서방정 300mg", "val600": "오르필서방정 600mg", "venla375": "코팩사엑스알서방캡슐 37.5mg", "venla75": "코팩사엑스알서방캡슐 75mg", "zanax0.5": "자낙스 0.5", "zeldox25": "젤독스캡슐 20mg", "ZOL25": "졸민 0.25mg", "zoloft50": "졸로푸트 50mg", "ZYP10": "자이프렉사자이디스확산정 10mg", "olanm10": "뉴로자핀 10mg"};
@@ -876,10 +876,16 @@ function checkKey(){var k=localStorage.getItem('sb_anon_key');if(k){ANON_KEY=k;d
 
 // ── Supabase ─────────────────────────────────────────
 function sbH(){return{'Content-Type':'application/json','apikey':ANON_KEY,'Authorization':'Bearer '+ANON_KEY};}
-async function sbGet(t,p){var qs=Object.entries(p).map(function(e){return e[0]+'='+encodeURIComponent(e[1]);}).join('&');var r=await fetch(SUPA_URL+'/rest/v1/'+t+'?'+qs,{headers:sbH()});return r.json();}
-async function sbUpsert(t,d){var r=await fetch(SUPA_URL+'/rest/v1/'+t,{method:'POST',headers:Object.assign({},sbH(),{'Prefer':'resolution=merge-duplicates'}),body:JSON.stringify(d)});return r.status<300;}
-async function sbInsert(t,d){var r=await fetch(SUPA_URL+'/rest/v1/'+t,{method:'POST',headers:sbH(),body:JSON.stringify(d)});return r.status<300;}
-async function sbUpdate(t,m,d){var qs=Object.entries(m).map(function(e){return e[0]+'=eq.'+encodeURIComponent(e[1]);}).join('&');var r=await fetch(SUPA_URL+'/rest/v1/'+t+'?'+qs,{method:'PATCH',headers:sbH(),body:JSON.stringify(d)});return r.status<300;}
+async function sbGet(t,p){
+  var qs=Object.entries(p).map(function(e){return e[0]+'='+encodeURIComponent(e[1]);}).join('&');
+  var r=await fetch(SUPA_URL+'/rest/v1/'+t+'?'+qs,{headers:sbH()});
+  if(r.status===401||r.status===403){showToast('⚠️ 401: service_role 키를 사용하거나 RLS 정책을 추가하세요.',4000);return[];}
+  var data=await r.json();
+  return Array.isArray(data)?data:[];
+}
+async function sbUpsert(t,d){var r=await fetch(SUPA_URL+'/rest/v1/'+t,{method:'POST',headers:Object.assign({},sbH(),{'Prefer':'resolution=merge-duplicates'}),body:JSON.stringify(d)});if(r.status>=300){var e=await r.text();throw new Error('['+r.status+'] '+e.slice(0,100));}return true;}
+async function sbInsert(t,d){var r=await fetch(SUPA_URL+'/rest/v1/'+t,{method:'POST',headers:sbH(),body:JSON.stringify(d)});if(r.status>=300){var e=await r.text();throw new Error('['+r.status+'] '+e.slice(0,100));}return true;}
+async function sbUpdate(t,m,d){var qs=Object.entries(m).map(function(e){return e[0]+'=eq.'+encodeURIComponent(e[1]);}).join('&');var r=await fetch(SUPA_URL+'/rest/v1/'+t+'?'+qs,{method:'PATCH',headers:sbH(),body:JSON.stringify(d)});if(r.status>=300){var e=await r.text();throw new Error('['+r.status+'] '+e.slice(0,100));}return true;}
 async function sbDelete(t,m){var qs=Object.entries(m).map(function(e){return e[0]+'=eq.'+encodeURIComponent(e[1]);}).join('&');var r=await fetch(SUPA_URL+'/rest/v1/'+t+'?'+qs,{method:'DELETE',headers:sbH()});return r.status<300;}
 
 // DB에서 약물코드 조회
@@ -1084,7 +1090,9 @@ async function searchPatient(){
       sbGet('drugs',{'chart_no':'eq.'+chartNo,'select':'*','order':'id.asc'}),
       sbGet('daeri',{'chart':'eq.'+chartNo,'select':'visitor_name,relation,patient_name,visitor_phone,created_at','order':'created_at.desc','limit':'10'})
     ]);
-    var patient=res[0][0]||null,visit=res[1][0]||null,drugList=res[2]||[],daeriList=res[3]||[];
+    var patient=res[0][0]||null,visit=res[1][0]||null;
+    var drugList=Array.isArray(res[2])?res[2]:[];
+    var daeriList=Array.isArray(res[3])?res[3]:[];
     _currentChart=chartNo;
     _patientDrugs=drugList.filter(function(d){return d.drug_code||d.drug_name;});
     _drugsChanged=false;
@@ -2125,14 +2133,20 @@ function setStatus(id,type,msg){
 // ══ 접수조회 & 임상가척도 (from adm_clinic) ══
 // ══════════════════════════════════════════════════════════════════
 
-// Supabase client for clinician scales (using same project as pt.html)
-const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ1cmJmY29jaWh2YXBidGR6Ynl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NTUzMzQsImV4cCI6MjA5MjUzMTMzNH0.Y89bwZlS5ciqfhF9IRbF8oGa9CmFRsP6msFbp7DVypc';
+// getSearchKey(): 접수조회는 ANON_KEY(저장된 키)를 동적으로 사용
+// 구 anon키 fallback (접수조회 테이블이 구 프로젝트에 있을 경우 대비)
+const SUPA_ANON_OLD = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ1cmJmY29jaWh2YXBidGR6Ynl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NTUzMzQsImV4cCI6MjA5MjUzMTMzNH0.Y89bwZlS5ciqfhF9IRbF8oGa9CmFRsP6msFbp7DVypc';
+const SUPA_OLD_URL = 'https://rurbfcocihvapbtdzbyt.supabase.co';
+// 접수조회에서 사용할 키: 저장된 ANON_KEY 우선, 없으면 구 anon키
+function getSearchKey() { return ANON_KEY && ANON_KEY.length > 20 ? ANON_KEY : SUPA_ANON_OLD; }
 const SUPA_BUCKET = 'signatures';
 let _sbClient = null;
 function getSb() {
-  if(!_sbClient) {
-    // supabase global from CDN
-    _sbClient = supabase.createClient('https://rurbfcocihvapbtdzbyt.supabase.co', SUPA_ANON);
+  // 임상가척도는 새 프로젝트 사용
+  if(!_sbClient || _sbClient._supabaseUrl !== SUPA_URL) {
+    var key = getSearchKey();
+    _sbClient = supabase.createClient(SUPA_URL, key);
+    _sbClient._supabaseUrl = SUPA_URL;
   }
   return _sbClient;
 }
@@ -3468,7 +3482,7 @@ function unlockApp() {
 
 // ══ 접수 조회 ══════════════════════════════════════════
 // SUPA_URL already defined above
-// SUPA_ANON, SUPA_BUCKET already defined above
+// getSearchKey(), SUPA_BUCKET already defined above
 
 
 let clinUnlocked = true;
@@ -3678,7 +3692,7 @@ async function uploadSignature(sigDataUrl, filename) {
     const path = `${safeName}_${Date.now()}.png`;
     const uploadRes = await fetch(
       `${SUPA_URL}/storage/v1/object/${SUPA_BUCKET}/${path}`,
-      { method:'POST', headers:{ 'Authorization':`Bearer ${SUPA_ANON}`, 'apikey':SUPA_ANON, 'Content-Type':'image/png', 'x-upsert':'true' }, body: blob }
+      { method:'POST', headers:{ 'Authorization':`Bearer ${getSearchKey()}`, 'apikey':getSearchKey(), 'Content-Type':'image/png', 'x-upsert':'true' }, body: blob }
     );
     if (!uploadRes.ok) return null;
     return `${SUPA_URL}/storage/v1/object/public/${SUPA_BUCKET}/${path}`;
@@ -3689,7 +3703,7 @@ async function insertToSupabase(table, payload) {
   try {
     const r = await fetch(`${SUPA_URL}/rest/v1/${table}`, {
       method: 'POST',
-      headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${SUPA_ANON}`, 'apikey':SUPA_ANON, 'Prefer':'return=minimal' },
+      headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${getSearchKey()}`, 'apikey':getSearchKey(), 'Prefer':'return=minimal' },
       body: JSON.stringify(payload)
     });
     return r.ok;
@@ -3713,16 +3727,38 @@ async function doSearch() {
   el.innerHTML = '<div style="text-align:center;padding:20px;color:#6b7280;">⏳ 조회 중...</div>';
   const tables = type === 'all' ? ['chojin','daeri'] : [type];
   let allRows = [];
+
+  // 새 프로젝트 조회
   for (const tbl of tables) {
     let url = `${SUPA_URL}/rest/v1/${tbl}?order=created_at.desc&limit=100`;
     if (chart) url += `&chart=eq.${encodeURIComponent(chart)}`;
     if (name)  url += `&${tbl==='chojin'?'name':'visitor_name'}=ilike.*${encodeURIComponent(name)}*`;
     try {
-      const r = await fetch(url, { headers: { 'apikey': SUPA_ANON, 'Authorization': `Bearer ${SUPA_ANON}` }});
-      const rows = await r.json();
-      if (Array.isArray(rows)) allRows.push(...rows.map(row => ({...row, _table: tbl})));
+      const r = await fetch(url, { headers: { 'apikey': getSearchKey(), 'Authorization': `Bearer ${getSearchKey()}` }});
+      if (r.ok) {
+        const rows = await r.json();
+        if (Array.isArray(rows)) allRows.push(...rows.map(row => ({...row, _table: tbl, _src:'new'})));
+      }
     } catch(e) {}
   }
+
+  // 구 프로젝트 fallback (이관 미완료 대비)
+  for (const tbl of tables) {
+    let url = `${SUPA_OLD_URL}/rest/v1/${tbl}?order=created_at.desc&limit=100`;
+    if (chart) url += `&chart=eq.${encodeURIComponent(chart)}`;
+    if (name)  url += `&${tbl==='chojin'?'name':'visitor_name'}=ilike.*${encodeURIComponent(name)}*`;
+    try {
+      const r = await fetch(url, { headers: { 'apikey': SUPA_ANON_OLD, 'Authorization': `Bearer ${SUPA_ANON_OLD}` }});
+      if (r.ok) {
+        const rows = await r.json();
+        if (Array.isArray(rows)) {
+          const existIds = new Set(allRows.map(x => x._table+'-'+x.id));
+          rows.forEach(row => { if(!existIds.has(tbl+'-'+row.id)) allRows.push({...row, _table:tbl, _src:'old'}); });
+        }
+      }
+    } catch(e) {}
+  }
+
   allRows.sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
   if (!allRows.length) { el.innerHTML = '<div style="text-align:center;padding:30px;color:#9ca3af;">검색 결과가 없습니다.</div>'; return; }
   el.innerHTML = allRows.map(row => {
@@ -3730,14 +3766,15 @@ async function doSearch() {
     const nm  = isCj ? (row.name||'-') : (row.visitor_name||'-');
     const ch = row.chart || '-';
     const dt    = new Date(row.created_at).toLocaleString('ko-KR');
+    const srcBadge = row._src==='old' ? `<span style="font-size:10px;color:#aaa;">(구)</span>` : '';
     const badge = isCj
       ? `<span style="background:#dbeafe;color:#1d4ed8;font-size:12px;padding:2px 8px;border-radius:10px;font-weight:700;">초진</span>`
       : `<span style="background:#d1fae5;color:#065f46;font-size:12px;padding:2px 8px;border-radius:10px;font-weight:700;">대리</span>`;
-    return `<div onclick="openDetail('${row.id}','${row._table}')"
+    return `<div onclick="openDetail('${row.id}','${row._table}','${row._src||'new'}')"
       style="background:white;border:1px solid #e5e7eb;border-radius:10px;padding:12px 14px;margin-bottom:8px;cursor:pointer;transition:border-color 0.15s;"
       onmouseover="this.style.borderColor='#1a3a5c'" onmouseout="this.style.borderColor='#e5e7eb'">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
-        ${badge}
+        ${badge}${srcBadge}
         <span style="font-size:15px;font-weight:700;">${nm}</span>
         <span style="color:#9ca3af;font-size:13px;font-weight:700;margin-left:4px;">차트 ${ch}</span>
       </div>
@@ -3746,14 +3783,16 @@ async function doSearch() {
   }).join('');
 }
 
-async function openDetail(id, table) {
-  const r = await fetch(`${SUPA_URL}/rest/v1/${table}?id=eq.${id}`, {
-    headers: { 'apikey': SUPA_ANON, 'Authorization': `Bearer ${SUPA_ANON}` }
+async function openDetail(id, table, src) {
+  const baseUrl = (src==='old') ? SUPA_OLD_URL : SUPA_URL;
+  const key     = (src==='old') ? SUPA_ANON_OLD : getSearchKey();
+  const r = await fetch(`${baseUrl}/rest/v1/${table}?id=eq.${id}`, {
+    headers: { 'apikey': key, 'Authorization': `Bearer ${key}` }
   });
   const rows = await r.json();
   if (!rows.length) return;
   const row = rows[0];
-  currentModalData = { row, table };
+  currentModalData = { row, table, src: src||'new' };
   document.getElementById('modal-title').textContent =
     table === 'chojin' ? `초진 접수 — ${row.name||''}` : `대리 처방 — ${row.visitor_name||''}`;
   const dt = new Date(row.created_at).toLocaleString('ko-KR');
@@ -4081,16 +4120,18 @@ function closeEditModal() { document.getElementById('edit-modal').style.display 
 
 async function saveEdit() {
   if (!currentModalData) return;
-  const { row, table } = currentModalData;
+  const { row, table, src } = currentModalData;
   const newName = document.getElementById('edit-name-input').value.trim();
   const newChart = document.getElementById('edit-chart-input').value.trim();
   if (!newName || !newChart) { alert('이름과 차트번호를 모두 입력해주세요.'); return; }
   if (!confirm(`수정하시겠습니까?\n이름: ${newName}\n차트번호: ${newChart}`)) return;
   const nameField = table === 'chojin' ? 'name' : 'visitor_name';
+  const baseUrl = (src==='old') ? SUPA_OLD_URL : SUPA_URL;
+  const key     = (src==='old') ? SUPA_ANON_OLD : getSearchKey();
   try {
-    const r = await fetch(`${SUPA_URL}/rest/v1/${table}?id=eq.${encodeURIComponent(row.id)}`, {
+    const r = await fetch(`${baseUrl}/rest/v1/${table}?id=eq.${encodeURIComponent(row.id)}`, {
       method: 'PATCH',
-      headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${SUPA_ANON}`, 'apikey':SUPA_ANON, 'Prefer':'return=representation' },
+      headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${key}`, 'apikey':key, 'Prefer':'return=representation' },
       body: JSON.stringify({ [nameField]: newName, chart: newChart })
     });
     if (r.ok) { showToast('✅ 수정 완료!'); closeEditModal(); closeModal(); doSearch(); }
@@ -4112,13 +4153,15 @@ function closeDeleteModal() { document.getElementById('delete-modal').style.disp
 
 async function confirmDelete() {
   if (!currentModalData) return;
-  const { row, table } = currentModalData;
+  const { row, table, src } = currentModalData;
   const name = table === 'chojin' ? (row.name||'') : (row.visitor_name||'');
   if (!confirm(`정말 삭제하시겠습니까?\n복구할 수 없습니다.\n\n대상: ${name} / 차트 ${row.chart||'-'}`)) return;
+  const baseUrl = (src==='old') ? SUPA_OLD_URL : SUPA_URL;
+  const key     = (src==='old') ? SUPA_ANON_OLD : getSearchKey();
   try {
-    const r = await fetch(`${SUPA_URL}/rest/v1/${table}?id=eq.${encodeURIComponent(row.id)}`, {
+    const r = await fetch(`${baseUrl}/rest/v1/${table}?id=eq.${encodeURIComponent(row.id)}`, {
       method: 'DELETE',
-      headers: { 'Authorization':`Bearer ${SUPA_ANON}`, 'apikey':SUPA_ANON, 'Prefer':'return=minimal' }
+      headers: { 'Authorization':`Bearer ${key}`, 'apikey':key, 'Prefer':'return=minimal' }
     });
     if (r.ok) { showToast('🗑️ 삭제 완료!'); closeDeleteModal(); closeModal(); doSearch(); }
     else { const err = await r.text(); alert(`❌ 삭제 실패 (${r.status}):\n${err}`); }
@@ -4170,7 +4213,7 @@ var _lkList   = [];
 var LK_TABLE  = 'clinic_links'; // Supabase 테이블명
 
 async function loadLinksTab() {
-  if (!SUPA_ANON || SUPA_ANON.length < 10) {
+  if (!getSearchKey() || getSearchKey().length < 10) {
     showToast('⚠️ Supabase Key를 먼저 입력해주세요');
     return;
   }
