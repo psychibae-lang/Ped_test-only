@@ -4152,11 +4152,8 @@ async function loadLinksTab() {
     } catch(e2) { _lkList = []; }
   }
   lkRender();
-  // 편집기는 처음 한 번만 생성
-  if (!_lkLoaded) {
-    lkPopulateEditor();
-    _lkLoaded = true;
-  }
+  // 편집기는 데이터가 바뀔 때마다 갱신 (중복 행 방지를 위해 항상 재생성)
+  lkPopulateEditor();
 }
 
 function lkRender() {
@@ -4193,8 +4190,8 @@ function lkRender() {
 function lkPopulateEditor() {
   var list = document.getElementById('lk-entries');
   list.innerHTML = '';
-  if (!_lkList.length) { lkAddRow(); lkAddRow(); }
-  else { _lkList.forEach(function(l){ lkAddRow(l.name, l.url); }); lkAddRow(); lkAddRow(); }
+  if (!_lkList.length) { lkAddRow(); }
+  else { _lkList.forEach(function(l){ lkAddRow(l.name, l.url); }); lkAddRow(); }
 }
 
 function lkAddRow(name, url) {
@@ -4223,7 +4220,7 @@ async function lkSave() {
 
   try {
     // 기존 전체 삭제 후 재삽입 (간단한 upsert 전략)
-    var r = await fetch(SUPA_URL+'/rest/v1/'+LK_TABLE, {
+    var r = await fetch(SUPA_URL+'/rest/v1/'+LK_TABLE+'?id=gte.0', {
       method:'DELETE',
       headers: Object.assign({'Prefer':'return=minimal'}, sbH())
     });
@@ -4236,18 +4233,21 @@ async function lkSave() {
     if (r2.ok || r2.status===201) {
       _lkList = newList;
       lkRender();
+      lkPopulateEditor();
       showToast('✅ 링크 저장 완료 ('+newList.length+'개)');
     } else {
       // fallback: localStorage
       localStorage.setItem('link_manager_v1', JSON.stringify(newList.map(function(l){ return {name:l.name,url:l.url}; })));
       _lkList = newList;
       lkRender();
+      lkPopulateEditor();
       showToast('✅ 로컬에 저장 완료 ('+newList.length+'개)');
     }
   } catch(e) {
     localStorage.setItem('link_manager_v1', JSON.stringify(newList.map(function(l){ return {name:l.name,url:l.url}; })));
     _lkList = newList;
     lkRender();
+    lkPopulateEditor();
     showToast('✅ 로컬에 저장 완료 ('+newList.length+'개)');
   }
 }
