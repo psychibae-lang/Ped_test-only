@@ -4018,7 +4018,6 @@ async function saveChartFromModal() {
     if (!existing_pt || existing_pt.length === 0) {
       await sbInsert('patients', {
         chart_no: chartNo,
-        name: row.name || '',
         phone: (row.phone || '').replace(/[-\s]/g, ''),
         updated_at: new Date().toISOString()
       });
