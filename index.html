@@ -204,7 +204,6 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:#fafbff;}
   <button class="nav-tab" id="navProxy" onclick="switchTab('proxy')">📋 대리처방</button>
   <button class="nav-tab" id="navSelcare" onclick="switchTab('selcare')">⭐ 선택의료</button>
   <button class="nav-tab" id="navSms" onclick="switchTab('sms')">📱 문자발송</button>
-  <button class="nav-tab" id="navPhone" onclick="switchTab('phone')">📞 전화번호변경</button>
   <button class="nav-tab" id="navStats" onclick="switchTab('stats');loadVisitStats()">📊 내원현황</button>
 </div>
 
@@ -675,80 +674,6 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:#fafbff;}
   </div>
 </div>
 
-<!-- ══ 전화번호변경 탭 ══ -->
-<div id="tabPhone" class="container hidden">
-
-  <!-- 전화번호 미등록 환자 카드 -->
-  <div class="card">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
-      <div class="card-title" style="margin-bottom:0;">📵 전화번호 미등록 환자</div>
-      <div style="display:flex;gap:8px;align-items:center;">
-        <span id="nullPhoneCount" style="font-size:11px;color:var(--text2);"></span>
-        <button class="btn btn-outline" onclick="loadNullPhoneList()" style="font-size:11px;padding:6px 10px;">🔄 조회</button>
-        <button class="btn btn-outline" onclick="downloadNullPhoneCsv()" style="font-size:11px;padding:6px 10px;">📥 CSV</button>
-      </div>
-    </div>
-    <div id="nullPhoneBody">
-      <div style="text-align:center;padding:20px;color:var(--text2);font-size:13px;">🔄 조회 버튼을 눌러주세요</div>
-    </div>
-  </div>
-
-  <div class="card" style="max-width:480px;margin:0 auto;">
-    <div class="card-title">전화번호 변경</div>
-
-    <!-- STEP 1: 조회 -->
-    <div id="pc2-step1">
-      <div style="display:flex;flex-direction:column;gap:12px;">
-        <!-- 차트번호로 조회 -->
-        <div>
-          <label style="display:block;margin-bottom:6px;">차트번호로 조회</label>
-          <div class="input-row">
-            <input type="text" id="pc2-chart" placeholder="차트번호 입력" inputmode="numeric"
-              onkeydown="if(event.key==='Enter')pc2Search()" style="flex:1;">
-            <button class="btn btn-primary" onclick="pc2Search()">🔍 조회</button>
-          </div>
-          <div id="pc2-search-msg" style="margin-top:8px;font-size:13px;font-weight:600;min-height:18px;"></div>
-        </div>
-
-        <!-- 전화번호로 차트번호 찾기 -->
-        <div style="padding-top:12px;border-top:1px solid var(--border);">
-          <label style="display:block;margin-bottom:6px;">전화번호로 차트번호 찾기</label>
-          <div class="input-row">
-            <input type="text" id="pc2-phone-search" placeholder="01012345678" inputmode="tel"
-              onkeydown="if(event.key==='Enter')pc2SearchByPhone()" style="flex:1;">
-            <button class="btn btn-success" onclick="pc2SearchByPhone()">🔍 조회</button>
-          </div>
-          <div id="pc2-phone-search-msg" style="margin-top:8px;font-size:13px;font-weight:600;min-height:18px;"></div>
-          <div id="pc2-phone-search-result" class="hidden" style="margin-top:10px;background:#f0fdf4;border:1px solid #a7f3d0;border-radius:8px;padding:12px;">
-            <div style="font-size:11px;color:var(--success);font-weight:700;margin-bottom:8px;">📋 조회 결과</div>
-            <div id="pc2-phone-search-list"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- STEP 2: 현재 번호 확인 + 새 번호 입력 -->
-    <div id="pc2-step2" class="hidden">
-      <div style="background:#eef3fe;border:1.5px solid #c7d9fb;border-radius:10px;padding:14px;margin-bottom:14px;">
-        <div style="font-size:11px;font-weight:700;color:var(--accent);letter-spacing:0.5px;margin-bottom:6px;">📋 현재 등록된 전화번호</div>
-        <div style="font-size:12px;color:var(--text2);margin-bottom:4px;">차트번호 <strong id="pc2-display-chart" style="color:var(--text);font-family:monospace;"></strong></div>
-        <div style="font-size:20px;font-weight:700;color:var(--accent);letter-spacing:0.5px;" id="pc2-current-phone"></div>
-      </div>
-      <div style="text-align:center;color:var(--text2);font-size:13px;font-weight:600;margin-bottom:12px;">↓ 새 번호로 변경</div>
-      <div style="display:flex;flex-direction:column;gap:10px;">
-        <div class="input-group">
-          <label>새 전화번호</label>
-          <input type="tel" id="pc2-phone-new" placeholder="01012345678" inputmode="numeric"
-            onkeydown="if(event.key==='Enter')pc2ChangePhone()">
-        </div>
-        <button class="btn btn-success btn-lg" onclick="pc2ChangePhone()">✅ 전화번호 변경하기</button>
-        <button class="btn btn-outline btn-lg" onclick="pc2Reset()">← 차트번호 다시 입력</button>
-        <div id="pc2-phone-result" style="font-size:14px;font-weight:700;text-align:center;min-height:20px;"></div>
-      </div>
-    </div>
-  </div>
-</div>
-
 <!-- ══ 내원현황 탭 ══ -->
 <div id="tabStats" class="container hidden">
   <div class="card">
@@ -847,7 +772,7 @@ async function claudeCall(body){var r=await fetch(PROXY,{method:'POST',headers:{
 async function sheetPost(body){body._sheet_action=true;var r=await fetch(PROXY,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+ANON_KEY},body:JSON.stringify(body)});return r.json();}
 
 // ── 탭 ───────────────────────────────────────────────
-var TABS=['appt','patient','drug','search','clin','proxy','selcare','sms','phone','stats'];
+var TABS=['appt','patient','drug','search','clin','proxy','selcare','sms','stats'];
 // ── 약물 일괄 입력 ──────────────────────────────────
 function applyBulkFill(){
   var dose=document.getElementById('bulkDose')?document.getElementById('bulkDose').value.trim():'';
@@ -3763,190 +3688,7 @@ function srCopyCell(text, btn) {
   });
 }
 
-
-// ══ 전화번호 미등록 환자 조회 ══════════════════════════
-var _nullPhoneList = [];
-
-async function loadNullPhoneList() {
-  var bodyEl = document.getElementById('nullPhoneBody');
-  var countEl = document.getElementById('nullPhoneCount');
-  bodyEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text2);font-size:13px;"><div class="spinner" style="margin:0 auto 8px;"></div>조회 중...</div>';
-  countEl.textContent = '';
-  try {
-    // phone이 null이거나 빈 문자열인 patients
-    var r1 = await fetch(SUPA_URL+'/rest/v1/patients?phone=is.null&select=chart_no,phone,sms_yn,updated_at&order=chart_no.asc&limit=500', {headers:sbH()});
-    var r2 = await fetch(SUPA_URL+'/rest/v1/patients?phone=eq.&select=chart_no,phone,sms_yn,updated_at&order=chart_no.asc&limit=500', {headers:sbH()});
-    var d1 = await r1.json();
-    var d2 = await r2.json();
-    _nullPhoneList = [].concat(Array.isArray(d1)?d1:[], Array.isArray(d2)?d2:[]);
-    // chart_no 중복 제거
-    var seen = {};
-    _nullPhoneList = _nullPhoneList.filter(function(p){ if(seen[p.chart_no]) return false; seen[p.chart_no]=true; return true; });
-    renderNullPhoneTable();
-  } catch(e) {
-    bodyEl.innerHTML = '<div style="text-align:center;padding:16px;color:var(--danger);font-size:13px;">❌ 조회 오류: '+e.message+'</div>';
-  }
-}
-
-function renderNullPhoneTable() {
-  var bodyEl = document.getElementById('nullPhoneBody');
-  var countEl = document.getElementById('nullPhoneCount');
-  var list = _nullPhoneList;
-  countEl.textContent = list.length+'명';
-  if (list.length === 0) {
-    bodyEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--success);font-size:13px;">✅ 미등록 환자 없음</div>';
-    return;
-  }
-  var rows = list.map(function(p, idx) {
-    return '<tr>'
-      +'<td><span class="code-badge">'+p.chart_no+'</span></td>'
-      +'<td><span style="font-size:11px;color:var(--text2);">'+(p.updated_at ? p.updated_at.slice(0,10) : '-')+'</span></td>'
-      +'<td>'
-        +'<div style="display:flex;gap:5px;align-items:center;">'
-          +'<input type="tel" id="np-input-'+idx+'" placeholder="01012345678" inputmode="numeric"'
-            +' style="background:#f7f8fc;border:1px solid var(--border);border-radius:6px;padding:5px 8px;font-size:12px;width:130px;outline:none;"'
-            +' onkeydown="if(event.key===\'Enter\')saveNullPhone('+idx+',\''+p.chart_no+'\')">'
-          +'<button onclick="saveNullPhone('+idx+',\''+p.chart_no+'\')" class="btn btn-success" style="font-size:11px;padding:5px 10px;">저장</button>'
-          +'<button onclick="document.getElementById(\'pc2-chart\').value=\''+p.chart_no+'\';pc2Search();switchTab(\'phone\');" class="btn btn-outline" style="font-size:11px;padding:5px 8px;" title="변경 폼으로">✏️</button>'
-        +'</div>'
-        +'<div id="np-msg-'+idx+'" style="font-size:11px;min-height:14px;margin-top:3px;font-weight:600;"></div>'
-      +'</td>'
-      +'</tr>';
-  }).join('');
-  bodyEl.innerHTML = '<div style="overflow-x:auto;">'
-    +'<table><thead><tr><th>챠트번호</th><th>최근수정</th><th>전화번호 입력</th></tr></thead>'
-    +'<tbody>'+rows+'</tbody></table></div>';
-}
-
-async function saveNullPhone(idx, chartNo) {
-  var inputEl = document.getElementById('np-input-'+idx);
-  var msgEl   = document.getElementById('np-msg-'+idx);
-  var phone   = (inputEl.value||'').trim();
-  if (!phone) { msgEl.textContent='⚠️ 번호 입력 필요'; msgEl.style.color='var(--danger)'; return; }
-  msgEl.textContent='저장 중...'; msgEl.style.color='var(--text2)';
-  try {
-    var ok = await sbUpsert('patients', {chart_no:chartNo, phone:phone, updated_at:new Date().toISOString()});
-    if (ok) {
-      msgEl.textContent='✅ 저장됨'; msgEl.style.color='var(--success)';
-      // 목록에서 제거
-      _nullPhoneList.splice(idx, 1);
-      showToast('✅ '+chartNo+' → '+phone+' 저장 완료');
-      setTimeout(renderNullPhoneTable, 700);
-    } else {
-      msgEl.textContent='❌ 저장 실패'; msgEl.style.color='var(--danger)';
-    }
-  } catch(e) {
-    msgEl.textContent='❌ 오류'; msgEl.style.color='var(--danger)';
-  }
-}
-
-function downloadNullPhoneCsv() {
-  if (!_nullPhoneList.length) { showToast('먼저 조회해주세요.'); return; }
-  var csv = '챠트번호,최근수정\n';
-  _nullPhoneList.forEach(function(p) {
-    csv += p.chart_no+','+(p.updated_at||'').slice(0,10)+'\n';
-  });
-  var blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8;'});
-  var a = document.createElement('a'); a.href=URL.createObjectURL(blob);
-  a.download='전화번호미등록_'+today6()+'.csv'; a.click();
-}
-
-
-function pc2FmtPhone(ph) {
-  if (!ph) return '(미등록)';
-  var d = ph.replace(/[^0-9]/g,'');
-  if (d.length===11) return d.replace(/(\d{3})(\d{4})(\d{4})/,'$1-$2-$3');
-  if (d.length===10) return d.replace(/(\d{3})(\d{3,4})(\d{4})/,'$1-$2-$3');
-  return ph;
-}
-
-async function pc2Search() {
-  var chart = document.getElementById('pc2-chart').value.trim();
-  var msgEl = document.getElementById('pc2-search-msg');
-  if (!chart) { msgEl.textContent='⚠️ 차트번호를 입력하세요.'; msgEl.style.color='var(--danger)'; return; }
-  msgEl.textContent='조회 중...'; msgEl.style.color='var(--text2)';
-  try {
-    var rows = await sbGet('patients', {chart_no:'eq.'+chart, select:'chart_no,phone'});
-    if (!Array.isArray(rows) || rows.length===0) {
-      msgEl.textContent='⚠️ 차트번호 "'+chart+'"를 찾을 수 없습니다.'; msgEl.style.color='var(--danger)'; return;
-    }
-    var p = rows[0];
-    document.getElementById('pc2-display-chart').textContent = p.chart_no;
-    document.getElementById('pc2-current-phone').textContent = pc2FmtPhone(p.phone);
-    document.getElementById('pc2-phone-new').value = '';
-    document.getElementById('pc2-phone-result').textContent = '';
-    msgEl.textContent = '';
-    document.getElementById('pc2-step1').classList.add('hidden');
-    document.getElementById('pc2-step2').classList.remove('hidden');
-    setTimeout(function(){ document.getElementById('pc2-phone-new').focus(); }, 100);
-  } catch(e) {
-    msgEl.textContent='⚠️ 조회 중 오류가 발생했습니다.'; msgEl.style.color='var(--danger)';
-  }
-}
-
-async function pc2SearchByPhone() {
-  var phoneRaw = document.getElementById('pc2-phone-search').value.trim();
-  var msgEl    = document.getElementById('pc2-phone-search-msg');
-  var resultEl = document.getElementById('pc2-phone-search-result');
-  var listEl   = document.getElementById('pc2-phone-search-list');
-  if (!phoneRaw) { msgEl.textContent='⚠️ 전화번호를 입력하세요.'; msgEl.style.color='var(--danger)'; return; }
-  var phone = phoneRaw.replace(/-/g,'');
-  msgEl.textContent='조회 중...'; msgEl.style.color='var(--text2)';
-  resultEl.classList.add('hidden');
-  try {
-    var r = await fetch(SUPA_URL+'/rest/v1/patients?phone=like.*'+encodeURIComponent(phone)+'*&select=chart_no,phone&order=chart_no.asc&limit=20', {headers:sbH()});
-    var data = await r.json();
-    if (!data || data.length===0) {
-      msgEl.textContent='❌ 일치하는 차트번호가 없습니다.'; msgEl.style.color='var(--danger)'; return;
-    }
-    msgEl.textContent='✅ '+data.length+'건 조회됨'; msgEl.style.color='var(--success)';
-    listEl.innerHTML = data.map(function(p){
-      return '<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #e6f7f1;">'
-        +'<div><span class="code-badge">'+p.chart_no+'</span>'
-        +'<span style="font-size:13px;color:var(--text);margin-left:8px;">'+(p.phone||'번호없음')+'</span></div>'
-        +'<button onclick="document.getElementById(\'pc2-chart\').value=\''+p.chart_no+'\';pc2Search();" class="btn btn-primary" style="font-size:11px;padding:4px 10px;">선택</button>'
-        +'</div>';
-    }).join('');
-    resultEl.classList.remove('hidden');
-  } catch(e) {
-    msgEl.textContent='❌ 오류: '+e.message; msgEl.style.color='var(--danger)';
-  }
-}
-
-async function pc2ChangePhone() {
-  var chart = document.getElementById('pc2-chart').value.trim();
-  var phone = document.getElementById('pc2-phone-new').value.trim();
-  var resEl = document.getElementById('pc2-phone-result');
-  if (!phone) { resEl.textContent='⚠️ 새 전화번호를 입력하세요.'; resEl.style.color='var(--danger)'; return; }
-  resEl.textContent='처리 중...'; resEl.style.color='var(--text2)';
-  try {
-    var ok = await sbUpsert('patients', {chart_no:chart, phone:phone, updated_at:new Date().toISOString()});
-    if (ok) {
-      resEl.textContent='✅ 변경 완료 → '+phone; resEl.style.color='var(--success)';
-      showToast('✅ 전화번호 변경 완료: '+phone);
-      setTimeout(pc2Reset, 1800);
-    } else {
-      resEl.textContent='⚠️ 변경 실패. 다시 시도해주세요.'; resEl.style.color='var(--danger)';
-    }
-  } catch(e) {
-    resEl.textContent='⚠️ 오류가 발생했습니다.'; resEl.style.color='var(--danger)';
-  }
-}
-
-function pc2Reset() {
-  document.getElementById('pc2-step1').classList.remove('hidden');
-  document.getElementById('pc2-step2').classList.add('hidden');
-  document.getElementById('pc2-chart').value='';
-  document.getElementById('pc2-phone-new').value='';
-  document.getElementById('pc2-phone-search').value='';
-  document.getElementById('pc2-search-msg').textContent='';
-  document.getElementById('pc2-phone-search-msg').textContent='';
-  document.getElementById('pc2-phone-result').textContent='';
-  document.getElementById('pc2-phone-search-result').classList.add('hidden');
-  setTimeout(function(){ document.getElementById('pc2-chart').focus(); }, 100);
-}
-
-
+function closeModal() { document.getElementById('detail-modal').style.display = 'none'; }
 
 function printModalPDF() {
   if (!currentModalData) return;
@@ -3977,8 +3719,6 @@ function openEditModal() {
   document.getElementById('edit-chart-input').value = row.chart||'';
   document.getElementById('edit-modal').style.display = 'block';
 }
-function closeModal() { document.getElementById('detail-modal').style.display = 'none'; }
-
 function closeEditModal() { document.getElementById('edit-modal').style.display = 'none'; }
 
 async function saveEdit() {
