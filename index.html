@@ -196,9 +196,8 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:#fafbff;}
   <span id="keyStatus" style="font-size:11px;color:var(--text2);"></span>
 </div>
 <div class="nav-bar">
-  <button class="nav-tab active" id="navLinks" onclick="switchTab('links');loadLinksTab()">🔗 링크</button>
+  <button class="nav-tab active" id="navAppt" onclick="switchTab('appt');loadAppts()">📅 예약</button>
   <button class="nav-tab" id="navPatient" onclick="switchTab('patient')">👤 진료</button>
-  <button class="nav-tab" id="navAppt" onclick="switchTab('appt');loadAppts()">📅 예약</button>
   <button class="nav-tab" id="navDrug" onclick="switchTab('drug')">💊 약물입력</button>
   <button class="nav-tab" id="navSearch" onclick="switchTab('search');loadSearchTab()">🔍 접수조회</button>
   <button class="nav-tab" id="navClin" onclick="switchTab('clin');initClinTab()">🧠 임상가척도</button>
@@ -210,7 +209,7 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:#fafbff;}
 </div>
 
 <!-- ══ 예약 탭 ══ -->
-<div id="tabAppt" class="container hidden">
+<div id="tabAppt" class="container">
   <div class="card" style="padding:14px 16px;">
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
       <div style="font-size:13px;font-weight:700;color:#333;">📅 예약 현황 (오늘~8일)</div>
@@ -444,7 +443,6 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:#fafbff;}
     <div id="modal-body" style="padding:16px 20px;overflow-y:auto;max-height:65vh;"></div>
     <div style="padding:12px 20px;border-top:1px solid #eee;display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;">
       <button onclick="openDeleteModal()" style="background:#dc2626;color:#fff;border:none;border-radius:8px;padding:9px 14px;font-size:13px;cursor:pointer;font-weight:700;margin-right:auto;">🗑️ 삭제</button>
-      <button onclick="saveChartFromModal()" id="btnSaveChartModal" style="background:#2563eb;color:#fff;border:none;border-radius:8px;padding:9px 16px;font-size:13px;cursor:pointer;font-weight:700;">📋 챠트저장</button>
       <button onclick="openEditModal()" style="background:#d97706;color:#fff;border:none;border-radius:8px;padding:9px 16px;font-size:13px;cursor:pointer;font-weight:700;">✏️ 수정</button>
       <button onclick="printModalPDF()" style="background:#16a34a;color:#fff;border:none;border-radius:8px;padding:9px 18px;font-size:13px;cursor:pointer;font-weight:700;">🖨️ PDF</button>
       <button onclick="closeModal()" class="btn btn-outline" style="font-size:13px;">닫기</button>
@@ -849,7 +847,7 @@ async function claudeCall(body){var r=await fetch(PROXY,{method:'POST',headers:{
 async function sheetPost(body){body._sheet_action=true;var r=await fetch(PROXY,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+ANON_KEY},body:JSON.stringify(body)});return r.json();}
 
 // ── 탭 ───────────────────────────────────────────────
-var TABS=['links','patient','appt','drug','search','clin','proxy','selcare','sms','phone','stats'];
+var TABS=['appt','patient','drug','search','clin','proxy','selcare','sms','phone','stats'];
 // ── 약물 일괄 입력 ──────────────────────────────────
 function applyBulkFill(){
   var dose=document.getElementById('bulkDose')?document.getElementById('bulkDose').value.trim():'';
@@ -926,7 +924,7 @@ var _currentChart=null,_patientDrugs=[],_drugsChanged=false,_currentDaeriList=[]
 window.addEventListener('DOMContentLoaded',function(){
   checkKey();
   document.getElementById('pVisitDateDisp').textContent=displayDate(today6());
-  switchTab('links'); loadLinksTab();  // 첫 탭: 링크
+  loadAppts();
   document.getElementById('pChartNo').addEventListener('keydown',function(e){if(e.key==='Enter')searchPatient();});
   document.getElementById('chartNo').addEventListener('input',updateConvertBtn);
   document.getElementById('fileInput').addEventListener('change',function(e){if(e.target.files[0])loadImg(e.target.files[0]);});
@@ -3981,51 +3979,6 @@ function openEditModal() {
 }
 function closeModal() { document.getElementById('detail-modal').style.display = 'none'; }
 
-// 챠트저장: 초진 모달에서 진료 탭 visits에 오늘 내원일로 저장
-async function saveChartFromModal() {
-  if (!currentModalData) return;
-  const { row, table } = currentModalData;
-  if (table !== 'chojin') { showToast('⚠️ 초진 접수에서만 사용 가능합니다.'); return; }
-  const chartNo = String(row.chart || '').trim();
-  if (!chartNo) { showToast('⚠️ 차트번호가 없습니다.'); return; }
-
-  const btn = document.getElementById('btnSaveChartModal');
-  const origText = btn.textContent;
-  btn.textContent = '저장 중...'; btn.disabled = true;
-
-  try {
-    const today = today6(); // yyMMdd
-    const visitData = {
-      chart_no: chartNo,
-      visit_date: today,
-      updated_at: new Date().toISOString()
-    };
-    // patients 테이블에도 chart_no 없으면 기본 등록
-    const existing_pt = await sbGet('patients', { chart_no: 'eq.' + chartNo, select: 'chart_no', limit: '1' });
-    if (!existing_pt || existing_pt.length === 0) {
-      await sbInsert('patients', {
-        chart_no: chartNo,
-        name: row.name || '',
-        phone: (row.phone || '').replace(/[-\s]/g, ''),
-        updated_at: new Date().toISOString()
-      });
-    }
-    // visits upsert
-    const existing_v = await sbGet('visits', { chart_no: 'eq.' + chartNo, select: 'id', limit: '1' });
-    if (existing_v && existing_v.length > 0) {
-      await sbUpdate('visits', { chart_no: chartNo }, visitData);
-    } else {
-      await sbInsert('visits', visitData);
-    }
-    btn.textContent = '✅ 저장됨';
-    showToast('✅ 챠트 ' + chartNo + ' → 진료 탭에 내원일(' + today + ') 저장 완료');
-    setTimeout(() => { btn.textContent = origText; btn.disabled = false; }, 2500);
-  } catch(e) {
-    showToast('❌ 저장 실패: ' + e.message);
-    btn.textContent = origText; btn.disabled = false;
-  }
-}
-
 function closeEditModal() { document.getElementById('edit-modal').style.display = 'none'; }
 
 async function saveEdit() {
@@ -4074,195 +4027,6 @@ async function confirmDelete() {
   } catch(e) { alert(`❌ 오류: ${e.message}`); }
 }
 
-</script>
-
-<!-- ══ 링크 탭 ══ -->
-<div id="tabLinks" class="container">
-
-  <!-- 저장된 링크 (상단) -->
-  <div class="card">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
-      <div class="card-title" style="margin-bottom:0;">🔗 링크 목록</div>
-      <div style="display:flex;gap:8px;">
-        <span id="lk-count" style="font-size:12px;color:var(--text2);align-self:center;"></span>
-        <button class="btn btn-outline" onclick="lkClearAll()" style="font-size:11px;padding:5px 10px;color:var(--danger);border-color:#fca5a5;">🗑 전체삭제</button>
-      </div>
-    </div>
-    <div id="lk-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;">
-      <div style="grid-column:1/-1;text-align:center;padding:28px;color:var(--text2);font-size:13px;border:1.5px dashed var(--border);border-radius:12px;">
-        🌐 아래에서 링크를 추가해보세요
-      </div>
-    </div>
-  </div>
-
-  <!-- 편집 패널 (하단) -->
-  <div class="card">
-    <div class="card-title">✏️ 링크 추가 / 편집</div>
-    <div id="lk-entries" style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;"></div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;">
-      <button class="btn btn-outline" onclick="lkAddRow()" style="font-size:12px;">+ 행 추가</button>
-      <button class="btn btn-success" onclick="lkSave()" style="margin-left:auto;font-size:13px;">💾 저장</button>
-    </div>
-  </div>
-
-  <!-- Supabase 테이블 생성 SQL -->
-  <div class="card" style="margin-top:12px;">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
-      <div class="card-title" style="margin-bottom:0;font-size:12px;color:var(--text2);">🛠 Supabase 테이블 생성 SQL <span style="font-weight:400;">(처음 한 번만 실행)</span></div>
-      <button onclick="lkCopySql()" class="btn btn-outline" style="font-size:11px;padding:4px 10px;">📋 복사</button>
-    </div>
-    <pre id="lk-sql" style="background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:12px;font-size:11px;font-family:monospace;color:#334155;overflow-x:auto;white-space:pre;line-height:1.7;">create table if not exists clinic_links (
-  id          bigserial primary key,
-  name        text not null,
-  url         text not null,
-  sort_order  integer default 0,
-  created_at  timestamptz default now()
-);
-
--- RLS: 모든 사용자 읽기/쓰기 허용 (필요시 조정)
-alter table clinic_links enable row level security;
-create policy "allow all" on clinic_links for all using (true) with check (true);</pre>
-  </div>
-</div>
-
-<script>
-// ══ 링크 탭 (Supabase) ═══════════════════════════════
-var _lkLoaded = false;
-var _lkList   = [];
-var LK_TABLE  = 'clinic_links'; // Supabase 테이블명
-
-async function loadLinksTab() {
-  if (!SUPA_ANON || SUPA_ANON.length < 10) {
-    showToast('⚠️ Supabase Key를 먼저 입력해주세요');
-    return;
-  }
-  try {
-    var rows = await sbGet(LK_TABLE, { select: 'id,name,url', order: 'sort_order.asc,id.asc' });
-    _lkList = Array.isArray(rows) ? rows : [];
-  } catch(e) {
-    // 테이블 없으면 로컬스토리지 fallback
-    try {
-      var saved = localStorage.getItem('link_manager_v1');
-      _lkList = saved ? JSON.parse(saved).map(function(l,i){ return {id:null,name:l.name,url:l.url,sort_order:i}; }) : [];
-    } catch(e2) { _lkList = []; }
-  }
-  lkRender();
-  lkPopulateEditor();
-  _lkLoaded = true;
-}
-
-function lkRender() {
-  var grid = document.getElementById('lk-grid');
-  document.getElementById('lk-count').textContent = _lkList.length + '개';
-  if (!_lkList.length) {
-    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:28px;color:var(--text2);font-size:13px;border:1.5px dashed var(--border);border-radius:12px;">🌐 저장된 링크가 없습니다</div>';
-    return;
-  }
-  grid.innerHTML = _lkList.map(function(link) {
-    var domain = '';
-    try { domain = new URL(link.url).hostname.replace('www.',''); } catch(e) {}
-    var favicon = '';
-    try { favicon = 'https://www.google.com/s2/favicons?domain=' + new URL(link.url).origin + '&sz=32'; } catch(e) {}
-    var safeUrl = (link.url||'').replace(/'/g,"\\'");
-    return '<div onclick="window.open(\''+safeUrl+'\',\'_blank\')" style="'
-      +'background:#fff;border:1px solid var(--border);border-radius:12px;'
-      +'padding:13px 15px;cursor:pointer;display:flex;align-items:center;gap:10px;'
-      +'transition:all .18s;box-shadow:0 2px 8px rgba(0,0,0,.04);" '
-      +'onmouseover="this.style.borderColor=\'var(--accent)\';this.style.background=\'#f0f0ff\';this.style.transform=\'translateY(-2px)\'" '
-      +'onmouseout="this.style.borderColor=\'var(--border)\';this.style.background=\'#fff\';this.style.transform=\'none\'">'
-      +'<div style="width:26px;height:26px;border-radius:6px;background:var(--bg);border:1px solid var(--border);'
-        +'display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;">'
-        +(favicon ? '<img src="'+favicon+'" style="width:16px;height:16px;object-fit:contain;" onerror="this.style.display=\'none\';this.parentNode.innerHTML=\'🔗\'">' : '🔗')
-      +'</div>'
-      +'<div style="flex:1;min-width:0;">'
-        +'<div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+lkEsc(link.name)+'</div>'
-        +'<div style="font-size:10px;color:var(--text2);font-family:monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+lkEsc(domain)+'</div>'
-      +'</div>'
-      +'</div>';
-  }).join('');
-}
-
-function lkPopulateEditor() {
-  var list = document.getElementById('lk-entries');
-  list.innerHTML = '';
-  if (!_lkList.length) { lkAddRow(); lkAddRow(); }
-  else { _lkList.forEach(function(l){ lkAddRow(l.name, l.url); }); lkAddRow(); lkAddRow(); }
-}
-
-function lkAddRow(name, url) {
-  var list = document.getElementById('lk-entries');
-  var row = document.createElement('div');
-  row.style.cssText = 'display:grid;grid-template-columns:1fr 2fr auto;gap:10px;align-items:center;';
-  row.innerHTML = '<input type="text" placeholder="이름" value="'+lkEsc(name||'')+'" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;width:100%;">'
-    +'<input type="url" placeholder="https://..." value="'+lkEsc(url||'')+'" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;width:100%;">'
-    +'<button onclick="this.closest(\'div\').remove()" style="background:none;border:1px solid transparent;border-radius:7px;color:var(--text2);cursor:pointer;padding:7px 9px;font-size:1rem;" onmouseover="this.style.color=\'var(--danger)\';this.style.borderColor=\'var(--danger)\'" onmouseout="this.style.color=\'var(--text2)\';this.style.borderColor=\'transparent\'">✕</button>';
-  list.appendChild(row);
-}
-
-async function lkSave() {
-  var rows = document.querySelectorAll('#lk-entries > div');
-  var newList = [];
-  rows.forEach(function(row, i) {
-    var inputs = row.querySelectorAll('input');
-    var name = (inputs[0]||{}).value ? inputs[0].value.trim() : '';
-    var url  = (inputs[1]||{}).value ? inputs[1].value.trim() : '';
-    if (name && url) {
-      if (!url.match(/^https?:\/\//)) url = 'https://' + url;
-      newList.push({ name: name, url: url, sort_order: i });
-    }
-  });
-  if (!newList.length) { showToast('⚠️ 이름과 URL을 입력해주세요'); return; }
-
-  try {
-    // 기존 전체 삭제 후 재삽입 (간단한 upsert 전략)
-    var r = await fetch(SUPA_URL+'/rest/v1/'+LK_TABLE, {
-      method:'DELETE',
-      headers: Object.assign({'Prefer':'return=minimal'}, sbH())
-    });
-    // 새로 insert
-    var r2 = await fetch(SUPA_URL+'/rest/v1/'+LK_TABLE, {
-      method:'POST',
-      headers: Object.assign({'Prefer':'return=minimal'}, sbH()),
-      body: JSON.stringify(newList)
-    });
-    if (r2.ok || r2.status===201) {
-      _lkList = newList;
-      lkRender();
-      showToast('✅ 링크 저장 완료 ('+newList.length+'개)');
-    } else {
-      // fallback: localStorage
-      localStorage.setItem('link_manager_v1', JSON.stringify(newList.map(function(l){ return {name:l.name,url:l.url}; })));
-      _lkList = newList;
-      lkRender();
-      showToast('✅ 로컬에 저장 완료 ('+newList.length+'개)');
-    }
-  } catch(e) {
-    localStorage.setItem('link_manager_v1', JSON.stringify(newList.map(function(l){ return {name:l.name,url:l.url}; })));
-    _lkList = newList;
-    lkRender();
-    showToast('✅ 로컬에 저장 완료 ('+newList.length+'개)');
-  }
-}
-
-async function lkClearAll() {
-  if (!confirm('저장된 링크를 모두 삭제할까요?')) return;
-  try {
-    await fetch(SUPA_URL+'/rest/v1/'+LK_TABLE, { method:'DELETE', headers: Object.assign({'Prefer':'return=minimal'}, sbH()) });
-  } catch(e) {}
-  localStorage.removeItem('link_manager_v1');
-  _lkList = [];
-  lkRender();
-  lkPopulateEditor();
-  showToast('🗑️ 모두 삭제했습니다');
-}
-
-function lkEsc(s){ return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
-function lkCopySql() {
-  var sql = document.getElementById('lk-sql').textContent;
-  navigator.clipboard.writeText(sql).then(function(){ showToast('✅ SQL 복사 완료! Supabase SQL Editor에 붙여넣기 후 실행하세요.'); })
-    .catch(function(){ showToast('⚠️ 복사 실패 — 직접 선택해서 복사해주세요'); });
-}
-// ═══════════════════════════════════════════════════════
 </script>
 </body>
 </html>
