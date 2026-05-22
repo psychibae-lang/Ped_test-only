@@ -1056,6 +1056,17 @@ async function searchPatient(){
     _currentChart=chartNo;
     _patientDrugs=drugList.filter(function(d){return d.drug_code||d.drug_name;});
     _drugsChanged=false;
+    // 약물 updated_at → 날짜 뱃지 초기값
+    var latestDrug = drugList.reduce(function(a,b){ return (a.updated_at||a.created_at||'') > (b.updated_at||b.created_at||'') ? a : b; }, {});
+    var drugTs = latestDrug.updated_at || latestDrug.created_at || '';
+    if (drugTs) {
+      var dd = new Date(drugTs);
+      if (!isNaN(dd.getTime())) {
+        _drugSavedDate[chartNo] = String(dd.getFullYear()).slice(2)+String(dd.getMonth()+1).padStart(2,'0')+String(dd.getDate()).padStart(2,'0');
+      }
+    } else {
+      _drugSavedDate[chartNo] = _drugSavedDate[chartNo] || today6();
+    }
 
     document.getElementById('pcChart').textContent=chartNo;
     var isNew=!patient&&!visit;
@@ -1209,7 +1220,12 @@ async function saveDrugsOnly(){
       await sbInsert('drugs',rows);
     }
     _drugsChanged=false;
-    setStatus('visitSaveStatus','success','✓ 약물 저장됨');
+    // 저장날짜 기록 (날짜피커에서 변경 안 했으면 오늘로)
+    var savedD = _drugSavedDate[_currentChart] || today6();
+    _drugSavedDate[_currentChart] = savedD;
+    var label = document.getElementById('drugDateLabel');
+    if(label) label.textContent = displayDate(savedD);
+    setStatus('visitSaveStatus','success','✓ 약물 저장됨 ('+displayDate(savedD)+')');
   }catch(err){setStatus('visitSaveStatus','error','약물 저장 실패: '+err.message);}
   finally{btn.disabled=false;btn.textContent='저장';}
 }
@@ -1302,11 +1318,23 @@ async function saveVisitAll(){
   finally{btn.disabled=false;btn.innerHTML='&#128190; 전체 저장';}
 }
 
+var _drugSavedDate = {}; // chart_no -> 날짜 문자열
+
+function getDrugSavedLabel(chartNo) {
+  var d = _drugSavedDate[chartNo];
+  if (!d) return today6();
+  return d;
+}
+
 function renderPatientDrugs(){
   var el=document.getElementById('piDrugArea'),cnt=document.getElementById('piDrugCount');
   cnt.textContent=_patientDrugs.length?_patientDrugs.length+'개':'';
   var ts='padding:5px 6px;border-bottom:1px solid #eee;';
   var is='background:transparent;border:none;border-bottom:1px solid #ddd;color:#222;font-size:12px;outline:none;padding:2px 3px;';
+
+  // 저장날짜 표시
+  var savedLabel = _currentChart ? getDrugSavedLabel(_currentChart) : today6();
+  var savedDisp = savedLabel ? displayDate(savedLabel) : displayDate(today6());
 
   // ── 버튼 / 일괄입력 영역 (테이블 위) ──
   var html=''
@@ -1323,17 +1351,33 @@ function renderPatientDrugs(){
     +'<button onclick="addPatientDrug()" class="btn btn-outline" style="font-size:11px;padding:5px 10px;">+ 행 추가</button>'
     +'<button onclick="goUpdateDrug()" class="btn btn-outline" style="font-size:11px;padding:5px 10px;">✦ 이미지로 업데이트</button>'
     +'<button id="btnSaveDrugs" onclick="saveDrugsOnly()" class="btn btn-success" style="font-size:12px;padding:6px 12px;">약물 저장</button>'
+    // 날짜 뱃지
+    +'<span id="drugDateBadge" title="약물 마지막 저장일" style="margin-left:4px;display:inline-flex;align-items:center;gap:5px;background:#fff;border:1.5px solid #c7d9fb;border-radius:20px;padding:4px 10px;font-size:11px;color:var(--accent);font-weight:600;cursor:pointer;" onclick="openDrugDatePicker()" title="저장날짜 변경">'
+    +'📅 <span id="drugDateLabel">'+savedDisp+'</span>'
+    +'</span>'
+    +'</div>'
+    // 날짜 변경 인라인 피커
+    +'<div id="drugDatePickerWrap" style="display:none;margin-bottom:8px;background:#eef3fe;border:1px solid #c7d9fb;border-radius:8px;padding:8px 12px;display:none;align-items:center;gap:8px;flex-wrap:wrap;">'
+    +'<span style="font-size:11px;color:var(--accent);font-weight:600;">약물 저장날짜:</span>'
+    +'<input type="text" id="drugDateInput" readonly style="cursor:pointer;background:#fff;border:1px solid #c7d9fb;border-radius:6px;padding:5px 10px;font-size:12px;width:100px;" onclick="openCal(\'drugDateInput\')" placeholder="날짜선택">'
+    +'<button onclick="applyDrugDate()" style="padding:5px 12px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer;">적용</button>'
+    +'<button onclick="document.getElementById(\'drugDatePickerWrap\').style.display=\'none\';" style="padding:5px 8px;background:#fff;border:1px solid var(--border);border-radius:6px;font-size:11px;cursor:pointer;color:var(--text2);">닫기</button>'
     +'</div>';
 
   // ── 테이블 ──
   html+='<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:12px;"><thead><tr>';
-  ['약물코드','약물명','용량','일투','일수','용법',''].forEach(function(h){html+='<th style="background:#f5f7fa;color:#666;font-size:10px;font-weight:700;text-transform:uppercase;padding:6px 8px;text-align:left;border-bottom:2px solid #e0e4ef;">'+h+'</th>';});
+  ['','약물코드','약물명','용량','일투','일수','용법',''].forEach(function(h){html+='<th style="background:#f5f7fa;color:#666;font-size:10px;font-weight:700;text-transform:uppercase;padding:6px 8px;text-align:left;border-bottom:2px solid #e0e4ef;">'+h+'</th>';});
   html+='</tr></thead><tbody>';
   if(!_patientDrugs.length){
-    html+='<tr><td colspan="7" style="padding:12px;color:#aaa;text-align:center;">약물 정보 없음 — 위 + 버튼으로 추가하세요</td></tr>';
+    html+='<tr><td colspan="8" style="padding:12px;color:#aaa;text-align:center;">약물 정보 없음 — 위 + 버튼으로 추가하세요</td></tr>';
   } else {
     _patientDrugs.forEach(function(d,i){
       html+='<tr>';
+      // 순서변경 버튼
+      html+='<td style="'+ts+';white-space:nowrap;padding:3px 4px;">'
+        +'<button onclick="moveDrug('+i+',-1)" style="background:none;border:1px solid #ddd;border-radius:4px;color:#888;cursor:pointer;font-size:11px;padding:1px 5px;line-height:1;" title="위로">▲</button>'
+        +'<button onclick="moveDrug('+i+',1)" style="background:none;border:1px solid #ddd;border-radius:4px;color:#888;cursor:pointer;font-size:11px;padding:1px 5px;line-height:1;margin-left:2px;" title="아래로">▼</button>'
+        +'</td>';
       var codeVal=((d.drug_code||'')).toString().replace(/"/g,'&quot;');
       html+='<td style="'+ts+';position:relative;">'
         +'<input data-pidx="'+i+'" data-pfield="drug_code" style="'+is+'width:70px;" value="'+codeVal+'" oninput="showDrugSuggest(this,'+i+')" onchange="onDrugChange('+i+',\'drug_code\',this.value)" onblur="hideSuggest('+i+')" autocomplete="off">'
@@ -1352,6 +1396,35 @@ function renderPatientDrugs(){
   }
   html+='</tbody></table></div>';
   el.innerHTML=html;
+}
+
+function moveDrug(i, dir) {
+  var j = i + dir;
+  if (j < 0 || j >= _patientDrugs.length) return;
+  var tmp = _patientDrugs[i]; _patientDrugs[i] = _patientDrugs[j]; _patientDrugs[j] = tmp;
+  _drugsChanged = true;
+  renderPatientDrugs();
+}
+
+function openDrugDatePicker() {
+  var wrap = document.getElementById('drugDatePickerWrap');
+  if (!wrap) return;
+  wrap.style.display = wrap.style.display === 'none' ? 'flex' : 'none';
+  // 현재 날짜 세팅
+  if (wrap.style.display === 'flex') {
+    var cur = _currentChart ? (_drugSavedDate[_currentChart] || today6()) : today6();
+    document.getElementById('drugDateInput').value = cur;
+  }
+}
+
+function applyDrugDate() {
+  var val = document.getElementById('drugDateInput').value.trim();
+  if (!val || !_currentChart) return;
+  _drugSavedDate[_currentChart] = val;
+  var label = document.getElementById('drugDateLabel');
+  if (label) label.textContent = displayDate(val);
+  document.getElementById('drugDatePickerWrap').style.display = 'none';
+  showToast('✅ 저장날짜 변경: ' + displayDate(val));
 }
 
 function onDrugChange(i,f,v){_patientDrugs[i][f]=v;_drugsChanged=true;}
@@ -4102,10 +4175,7 @@ async function confirmDelete() {
   <div class="card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
       <div class="card-title" style="margin-bottom:0;">🔗 링크 목록</div>
-      <div style="display:flex;gap:8px;">
-        <span id="lk-count" style="font-size:12px;color:var(--text2);align-self:center;"></span>
-        <button class="btn btn-outline" onclick="lkClearAll()" style="font-size:11px;padding:5px 10px;color:var(--danger);border-color:#fca5a5;">🗑 전체삭제</button>
-      </div>
+      <span id="lk-count" style="font-size:12px;color:var(--text2);"></span>
     </div>
     <div id="lk-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;">
       <div style="grid-column:1/-1;text-align:center;padding:28px;color:var(--text2);font-size:13px;border:1.5px dashed var(--border);border-radius:12px;">
@@ -4113,7 +4183,6 @@ async function confirmDelete() {
       </div>
     </div>
   </div>
-
 
   <!-- 편집 패널 (토글) -->
   <div class="card" style="margin-top:8px;">
@@ -4123,9 +4192,10 @@ async function confirmDelete() {
     </div>
     <div id="lk-editor-body" style="margin-top:14px;">
       <div id="lk-entries" style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;"></div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
         <button class="btn btn-outline" onclick="lkAddRow()" style="font-size:12px;">+ 행 추가</button>
         <button class="btn btn-success" onclick="lkSave()" style="margin-left:auto;font-size:13px;">💾 저장</button>
+        <button class="btn btn-outline" onclick="lkClearAll()" style="font-size:11px;padding:5px 10px;color:var(--danger);border-color:#fca5a5;">🗑 전체삭제</button>
       </div>
     </div>
   </div>
@@ -4156,6 +4226,31 @@ async function loadLinksTab() {
   lkPopulateEditor();
 }
 
+var _lkDragging = false;
+var _lkDragIdx = -1;
+
+function lkDragStart(ev, idx) {
+  _lkDragging = true; _lkDragIdx = idx;
+  ev.dataTransfer.effectAllowed = 'move';
+  ev.currentTarget.style.opacity = '0.5';
+}
+function lkDragOver(ev) { ev.preventDefault(); ev.dataTransfer.dropEffect = 'move'; }
+function lkDrop(ev, toIdx) {
+  ev.preventDefault();
+  if (_lkDragIdx === toIdx || _lkDragIdx < 0) return;
+  var moved = _lkList.splice(_lkDragIdx, 1)[0];
+  _lkList.splice(toIdx, 0, moved);
+  _lkDragIdx = -1;
+  lkRender();
+  lkPopulateEditor();
+  // 순서 자동 저장
+  lkSave();
+}
+function lkDragEnd(ev) {
+  _lkDragging = false; _lkDragIdx = -1;
+  ev.currentTarget.style.opacity = '';
+}
+
 function lkRender() {
   var grid = document.getElementById('lk-grid');
   document.getElementById('lk-count').textContent = _lkList.length + '개';
@@ -4163,17 +4258,22 @@ function lkRender() {
     grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:28px;color:var(--text2);font-size:13px;border:1.5px dashed var(--border);border-radius:12px;">🌐 저장된 링크가 없습니다</div>';
     return;
   }
-  grid.innerHTML = _lkList.map(function(link) {
+  grid.innerHTML = _lkList.map(function(link, idx) {
     var domain = '';
     try { domain = new URL(link.url).hostname.replace('www.',''); } catch(e) {}
     var favicon = '';
     try { favicon = 'https://www.google.com/s2/favicons?domain=' + new URL(link.url).origin + '&sz=32'; } catch(e) {}
     var safeUrl = (link.url||'').replace(/'/g,"\\'");
-    return '<div onclick="window.open(\''+safeUrl+'\',\'_blank\')" style="'
-      +'background:#fff;border:1px solid var(--border);border-radius:12px;'
-      +'padding:13px 15px;cursor:pointer;display:flex;align-items:center;gap:10px;'
-      +'transition:all .18s;box-shadow:0 2px 8px rgba(0,0,0,.04);" '
-      +'onmouseover="this.style.borderColor=\'var(--accent)\';this.style.background=\'#f0f0ff\';this.style.transform=\'translateY(-2px)\'" '
+    return '<div draggable="true" data-lk-idx="'+idx+'" '
+      +'onclick="if(!_lkDragging)window.open(\''+safeUrl+'\',\'_blank\')" '
+      +'ondragstart="lkDragStart(event,'+idx+')" '
+      +'ondragover="lkDragOver(event)" '
+      +'ondrop="lkDrop(event,'+idx+')" '
+      +'ondragend="lkDragEnd(event)" '
+      +'style="background:#fff;border:1px solid var(--border);border-radius:12px;'
+      +'padding:13px 15px;cursor:grab;display:flex;align-items:center;gap:10px;'
+      +'transition:all .18s;box-shadow:0 2px 8px rgba(0,0,0,.04);user-select:none;" '
+      +'onmouseover="if(!_lkDragging){this.style.borderColor=\'var(--accent)\';this.style.background=\'#f0f0ff\';this.style.transform=\'translateY(-2px)\'}" '
       +'onmouseout="this.style.borderColor=\'var(--border)\';this.style.background=\'#fff\';this.style.transform=\'none\'">'
       +'<div style="width:26px;height:26px;border-radius:6px;background:var(--bg);border:1px solid var(--border);'
         +'display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;">'
