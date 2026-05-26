@@ -166,6 +166,8 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:#fafbff;}
 
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
 <header style="background:#1a1d2e;border-bottom:1px solid #2d3154;box-shadow:0 2px 8px rgba(0,0,0,0.25);flex-wrap:wrap;gap:6px;justify-content:center;">
@@ -1351,6 +1353,8 @@ function renderPatientDrugs(){
     +'<button onclick="addPatientDrug()" class="btn btn-outline" style="font-size:11px;padding:5px 10px;">+ 행 추가</button>'
     +'<button onclick="goUpdateDrug()" class="btn btn-outline" style="font-size:11px;padding:5px 10px;">✦ 이미지로 업데이트</button>'
     +'<button id="btnSaveDrugs" onclick="saveDrugsOnly()" class="btn btn-success" style="font-size:12px;padding:6px 12px;">약물 저장</button>'
+    +'<button onclick="drugSaveImage()" class="btn btn-outline" style="font-size:12px;padding:6px 12px;border-color:#7c5cfc;color:#7c5cfc;" title="복용약물 이미지 저장">🖼️ 이미지</button>'
+    +'<button onclick="drugSavePDF()" class="btn btn-outline" style="font-size:12px;padding:6px 12px;border-color:#16a34a;color:#16a34a;" title="복용약물 PDF 저장">📄 PDF</button>'
     // 날짜 뱃지
     +'<span id="drugDateBadge" title="약물 마지막 저장일" style="margin-left:4px;display:inline-flex;align-items:center;gap:5px;background:#fff;border:1.5px solid #c7d9fb;border-radius:20px;padding:4px 10px;font-size:11px;color:var(--accent);font-weight:600;cursor:pointer;" onclick="openDrugDatePicker()" title="저장날짜 변경">'
     +'📅 <span id="drugDateLabel">'+savedDisp+'</span>'
@@ -1364,7 +1368,13 @@ function renderPatientDrugs(){
     +'<button onclick="document.getElementById(\'drugDatePickerWrap\').style.display=\'none\';" style="padding:5px 8px;background:#fff;border:1px solid var(--border);border-radius:6px;font-size:11px;cursor:pointer;color:var(--text2);">닫기</button>'
     +'</div>';
 
-  // ── 테이블 ──
+  html+='<div id="drugPrintArea" style="background:#fff;">'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;padding:10px 12px 0;">'
+    +'<div><div style="font-size:10px;color:#888;font-weight:700;letter-spacing:0.08em;">한강의원 복용약물</div>'
+    +'<div style="font-size:15px;font-weight:800;color:#1a3a5c;">챠트 <span style="font-family:monospace;color:var(--accent);">'+(_currentChart||'')+'</span></div></div>'
+    +'<div style="text-align:right;"><div style="font-size:10px;color:#888;">저장날짜</div>'
+    +'<div style="font-size:12px;font-weight:700;color:var(--accent);">'+savedDisp+'</div></div></div>'
+    +'<div style="overflow-x:auto;padding:0 0 4px;"><table style="width:100%;border-collapse:collapse;font-size:12px;"><thead><tr>';
   html+='<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:12px;"><thead><tr>';
   ['','약물코드','약물명','용량','일투','일수','용법',''].forEach(function(h){html+='<th style="background:#f5f7fa;color:#666;font-size:10px;font-weight:700;text-transform:uppercase;padding:6px 8px;text-align:left;border-bottom:2px solid #e0e4ef;">'+h+'</th>';});
   html+='</tr></thead><tbody>';
@@ -1394,7 +1404,7 @@ function renderPatientDrugs(){
       html+='</tr>';
     });
   }
-  html+='</tbody></table></div>';
+  html+='</tbody></table></div></div>';
   el.innerHTML=html;
 }
 
@@ -4390,6 +4400,55 @@ function switchNavGroup(group) {
 }
 // ─────────────────────────────────────────────────────
 // ═══════════════════════════════════════════════════════
+
+// ══ 약물 이미지/PDF 저장 ══════════════════════════════
+async function drugSaveImage() {
+  var area = document.getElementById('drugPrintArea');
+  if (!area) { alert('약물 테이블을 먼저 조회하세요.'); return; }
+  if (typeof html2canvas === 'undefined') { alert('라이브러리 로딩 중, 잠시 후 다시 시도하세요.'); return; }
+  try {
+    showToast('🖼️ 이미지 생성 중...');
+    var canvas = await html2canvas(area, { scale: 2, backgroundColor: '#ffffff', useCORS: true });
+    var link = document.createElement('a');
+    var chart = (_currentChart || 'drug');
+    var dateStr = (document.getElementById('drugDateLabel') ? document.getElementById('drugDateLabel').textContent : '') || '';
+    link.download = '약물_' + chart + '_' + dateStr.replace(/[()]/g, '') + '.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    showToast('✅ 이미지 저장 완료!');
+  } catch(e) {
+    alert('이미지 저장 오류: ' + e.message);
+  }
+}
+
+async function drugSavePDF() {
+  var area = document.getElementById('drugPrintArea');
+  if (!area) { alert('약물 테이블을 먼저 조회하세요.'); return; }
+  if (typeof html2canvas === 'undefined' || typeof window.jspdf === 'undefined') {
+    alert('라이브러리 로딩 중, 잠시 후 다시 시도하세요.'); return;
+  }
+  try {
+    showToast('📄 PDF 생성 중...');
+    var canvas = await html2canvas(area, { scale: 2, backgroundColor: '#ffffff', useCORS: true });
+    var imgData = canvas.toDataURL('image/png');
+    var { jsPDF } = window.jspdf;
+    var pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    var pageW = pdf.internal.pageSize.getWidth();
+    var pageH = pdf.internal.pageSize.getHeight();
+    var margin = 15;
+    var imgW = pageW - margin * 2;
+    var imgH = (canvas.height / canvas.width) * imgW;
+    if (imgH > pageH - margin * 2) { imgH = pageH - margin * 2; imgW = (canvas.width / canvas.height) * imgH; }
+    pdf.addImage(imgData, 'PNG', margin, margin, imgW, imgH);
+    var chart = (_currentChart || 'drug');
+    var dateStr = (document.getElementById('drugDateLabel') ? document.getElementById('drugDateLabel').textContent : '') || '';
+    pdf.save('약물_' + chart + '_' + dateStr.replace(/[()]/g, '') + '.pdf');
+    showToast('✅ PDF 저장 완료!');
+  } catch(e) {
+    alert('PDF 저장 오류: ' + e.message);
+  }
+}
+
 </script>
 </body>
 </html>
