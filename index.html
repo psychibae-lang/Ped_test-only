@@ -1710,6 +1710,7 @@ function prevQ(){
 }
 
 function nextQ(){
+  if(st.submitting||st.submitted)return;
   const sid=st.scaleIds[st.scaleIdx];
   const sc=SCALES[sid];
   const ans=st.allAnswers[sid];
@@ -1720,26 +1721,36 @@ function nextQ(){
 }
 
 async function finishAll(){
-  const now=new Date();
-  const ds=`${String(now.getFullYear()).slice(2)}${p2(now.getMonth()+1)}${p2(now.getDate())}`;
-  const results={};
-  st.scaleIds.forEach(sid=>{
-    const sc=SCALES[sid];
-    const ans=st.allAnswers[sid]||[];
-    const r=sc.score(ans);
-    r.answers=ans;r.opts=getScaleOptLabels(sc,ans);
-    results[sid]=r;
-  });
-  st.results=results;
-  const inserts=st.scaleIds.map(sid=>{
-    const r=results[sid];
-    return{session_id:st.sessionId,scale_id:sid,patient_name:st.name,score:r.s1,
-      extra_scores:JSON.stringify(r),answers:r.answers,interp:r.interp,
-      copy_text:r.copy?r.copy(ds,st.name):'',completed_at:now.toISOString()};
-  });
-  await sb.from('results').insert(inserts);
-  await sb.from('sessions').update({status:'완료'}).eq('id',st.sessionId);
-  showResultScreen(results);
+  // 이미 제출 중이거나 제출 완료된 경우 중복 실행 방지
+  // (마지막 문항에서 '다음' 버튼을 빠르게 두 번 누르면 finishAll이 두 번 호출되어
+  //  results가 중복 insert 되는 문제가 있었음)
+  if(st.submitting||st.submitted)return;
+  st.submitting=true;
+  try{
+    const now=new Date();
+    const ds=`${String(now.getFullYear()).slice(2)}${p2(now.getMonth()+1)}${p2(now.getDate())}`;
+    const results={};
+    st.scaleIds.forEach(sid=>{
+      const sc=SCALES[sid];
+      const ans=st.allAnswers[sid]||[];
+      const r=sc.score(ans);
+      r.answers=ans;r.opts=getScaleOptLabels(sc,ans);
+      results[sid]=r;
+    });
+    st.results=results;
+    const inserts=st.scaleIds.map(sid=>{
+      const r=results[sid];
+      return{session_id:st.sessionId,scale_id:sid,patient_name:st.name,score:r.s1,
+        extra_scores:JSON.stringify(r),answers:r.answers,interp:r.interp,
+        copy_text:r.copy?r.copy(ds,st.name):'',completed_at:now.toISOString()};
+    });
+    await sb.from('results').insert(inserts);
+    await sb.from('sessions').update({status:'완료'}).eq('id',st.sessionId);
+    st.submitted=true;
+    showResultScreen(results);
+  } finally {
+    st.submitting=false;
+  }
 }
 
 function getScaleOptLabels(sc,ans){
@@ -2887,7 +2898,9 @@ function buildDr2PdfHtml(data,sigDataUrl){
 }
 
 // ─ 대리처방 제출 ─
+let dr2Submitting=false;
 async function dr2Submit(){
+  if(dr2Submitting)return; // 버튼 빠르게 두 번 누르면 중복 저장되는 문제 방지
   let valid=true;
   const vn=dr2Val('dr2-visitor-name');dr2ShowErr('dr2-visitor-name-err',!vn);if(!vn)valid=false;
   const vp=dr2Val('dr2-visitor-phone');dr2ShowErr('dr2-visitor-phone-err',!vp);if(!vp)valid=false;
@@ -2910,6 +2923,7 @@ async function dr2Submit(){
   if(!win){toast('팝업 차단을 해제해주세요.');return;}
   win.document.write(buildDr2PdfHtml(data,sigDataUrl));
   win.document.close();
+  dr2Submitting=true;
   try{
     // ── 서명 Storage 업로드 → DB INSERT ──
     const sigUrl = await uploadSignature(sigDataUrl, filename);
@@ -2925,7 +2939,10 @@ async function dr2Submit(){
     // ── 구글 시트 전송 ──
     await fetch(SHEET_WEB_APP_URL2,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({sheet:'대리',row:[dr2FullDate(),chart,vn,vp,vb,va,rel,pn,pp,pb,pa,rsn,sigUrl||'(드라이브링크)',filename],signature:sigDataUrl})});
     toast('✅ 저장 완료!');
-  }catch(e){toast('📄 PDF 저장 완료 (네트워크 오류)'); console.error(e);}
+  }catch(e){toast('📄 PDF 저장 완료 (네트워크 오류)'); console.error(e);
+  }finally{
+    dr2Submitting=false;
+  }
 }
 
 function dr2ResetForm(){
@@ -2971,7 +2988,9 @@ function cj2ToggleAgree(id){
 }
 
 // ─ 초진 제출 ─
+let cj2Submitting=false;
 async function cj2Submit(){
+  if(cj2Submitting)return; // 버튼 빠르게 두 번 누르면 중복 저장되는 문제 방지
   let valid=true;
   const n=document.getElementById('cj2-name').value.trim();dr2ShowErr('cj2-name-err',!n);if(!n)valid=false;
   const i1=document.getElementById('cj2-id1').value.trim();dr2ShowErr('cj2-id1-err',i1.length!==6);if(i1.length!==6)valid=false;
@@ -3000,6 +3019,7 @@ async function cj2Submit(){
   const win=window.open('','_blank');
   if(!win){toast('팝업 차단을 해제해주세요.');return;}
   win.document.write(pdfHtml);win.document.close();
+  cj2Submitting=true;
   try{
     // ── 서명 Storage 업로드 → DB INSERT ──
     const sigUrl = await uploadSignature(sigDataUrl, filename);
@@ -3012,7 +3032,10 @@ async function cj2Submit(){
     // ── 구글 시트 전송 ──
     await fetch(SHEET_WEB_APP_URL2,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({sheet:'초진',row:[dr2FullDate(),chart,n,i1,i2,ph,ad,a1?'동의':'미동의',a2?'동의':'미동의',a3?'동의':'미동의',a4?'동의':'미동의',a5?'동의':'미동의',a6?'확인':'미확인',sigUrl||'(드라이브링크)',filename],signature:sigDataUrl})});
     toast('✅ 저장 완료!');
-  }catch(e){toast('📄 PDF 저장 완료 (네트워크 오류)'); console.error(e);}
+  }catch(e){toast('📄 PDF 저장 완료 (네트워크 오류)'); console.error(e);
+  }finally{
+    cj2Submitting=false;
+  }
 }
 
 function cj2ResetForm(){
